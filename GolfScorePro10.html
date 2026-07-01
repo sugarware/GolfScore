@@ -1,0 +1,3518 @@
+<!--
+Golf Score Pro - Version 10
+Source baseline: GolfScorePro5.html
+Policy:
+- This file preserves current behavior.
+- Hole move UI uses unified SVG coordinate rendering.
+- Prompt generation section reflects the updated user-edited version.
+- Future changes should branch from this file.
+-->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Golf Score Pro Version 10</title>
+
+<style>
+:root{
+  --bg:#f2ead7;
+  --panel:#fffdf8;
+  --line:#8a8576;
+  --text:#1f1f1f;
+  --sub:#4f4f4f;
+  --accent:#2f6fed;
+  --sum1:#ece8de;
+  --sum2:#ddd8cd;
+
+  --stepper-scale:1;
+  --diag-size-base:56px;
+  --value-font-base:21px;
+  --diag-size:calc(var(--diag-size-base) * var(--stepper-scale));
+  --value-font:calc(var(--value-font-base) * var(--stepper-scale));
+  --hole-btn-h:40px;
+  --hole-btn-size:52px;
+  --next-btn-w:132px;
+  --next-btn-h:64px;
+}
+
+*{ box-sizing:border-box; }
+
+html, body{
+  touch-action:manipulation;
+}
+
+body{
+  margin:0;
+  padding:6px;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  text-align:center;
+  -webkit-text-size-adjust:100%;
+}
+
+h3,h4{ margin:6px 0; }
+
+button,select,input{
+  font:inherit;
+}
+
+button{
+  min-height:38px;
+  padding:7px 10px;
+  border-radius:10px;
+  border:1px solid #8d8d8d;
+  background:#fff;
+  color:var(--text);
+  cursor:pointer;
+}
+
+button.primary{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+
+button.small{
+  min-height:32px;
+  padding:5px 8px;
+  font-size:13px;
+}
+
+button.settingsAdjustBtn{
+  min-width:48px;
+  min-height:44px;
+  padding:8px 12px;
+  font-size:20px;
+  font-weight:800;
+  line-height:1;
+}
+
+select,input{
+  width:min(320px, 92vw);
+  font-size:16px;
+  padding:8px 10px;
+  margin:3px 0;
+  border-radius:8px;
+  border:1px solid #888;
+  background:#fff;
+}
+
+table{
+  border-collapse:collapse;
+  margin:8px auto;
+  background:#fff;
+  width:100%;
+  max-width:1100px;
+}
+
+td,th{
+  border:1px solid #4a4a4a;
+  padding:6px 4px;
+  font-size:14px;
+  text-align:center;
+  vertical-align:middle;
+  color:#1f1f1f;
+}
+
+.hidden{ display:none !important; }
+
+.sectionCard{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px;
+  margin:8px auto;
+  max-width:760px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04);
+}
+
+.historyWrap{
+  max-width:1100px;
+  margin:8px auto;
+}
+
+.statusBar{
+  font-size:12px;
+  color:var(--sub);
+  margin:3px 0 6px;
+  min-height:16px;
+}
+
+.roundTitle{
+  margin:6px 0 8px;
+  font-size:17px;
+  font-weight:700;
+  color:#202020;
+}
+
+.inputArea{
+  max-width:760px;
+  margin:0 auto;
+}
+
+.courseNameRow{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:4px 0 8px;
+}
+
+.courseNameItem{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+}
+
+.courseNameLabel{
+  font-size:14px;
+  color:var(--text);
+}
+
+.playerSelectRow{
+  margin:6px 0;
+}
+
+.guestNameHint{
+  min-height:18px;
+  font-size:12px;
+  color:var(--sub);
+  margin-top:2px;
+}
+
+.shortCourseInput{
+  width:88px;
+  min-width:88px;
+  text-align:center;
+}
+
+/* Hole / Par / Move block */
+.topBlock{
+  max-width:760px;
+  margin:0 auto 8px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+}
+
+.topGrid{
+  display:grid;
+  grid-template-columns:minmax(90px, 104px) minmax(0, 1fr);
+  gap:10px;
+  align-items:center;
+}
+
+.leftPanel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+}
+
+.holeInfo{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+
+.holeLabel{
+  font-size:26px;
+  font-weight:800;
+  line-height:1.1;
+  color:#202020;
+}
+
+.parPanel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+}
+
+.parTitle{
+  font-size:18px;
+  font-weight:800;
+  color:#2a2a2a;
+  line-height:1;
+}
+
+.parValue{
+  font-size:28px;
+  font-weight:800;
+  line-height:1;
+  color:#202020;
+}
+
+.parDiag,
+.diagBtn{
+  width:var(--diag-size);
+  height:var(--diag-size);
+  border:1px solid #a7a18f;
+  border-radius:10px;
+  position:relative;
+  overflow:hidden;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+  background:
+    linear-gradient(45deg,
+      rgba(198,40,40,0.10) 50%,
+      rgba(46,125,50,0.10) 50%);
+}
+
+.parDiag{
+  cursor:pointer;
+  transition:opacity .15s ease, filter .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.parDiag.locked{
+  opacity:0.42;
+  filter:grayscale(1);
+  border-color:#b7b1a3;
+  box-shadow:none;
+}
+
+.parDiag.unlocked,
+.parDiag.armed{
+  opacity:1;
+  filter:none;
+  border-color:#7f7868;
+  box-shadow:0 0 0 2px rgba(47,111,237,0.12);
+}
+
+.parDiag.required,
+.diagBtn.required{
+  opacity:1;
+  filter:none;
+  border-color:#cf5a4b;
+  box-shadow:0 0 0 2px rgba(207,90,75,0.16);
+  animation:parNeedInputPulse 1.4s ease-in-out infinite;
+}
+
+.diagBtn{
+  cursor:pointer;
+  transition:opacity .15s ease, filter .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.diagBtn.locked{
+  opacity:0.42;
+  filter:grayscale(1);
+  border-color:#b7b1a3;
+  box-shadow:none;
+}
+
+.diagBtn.unlocked,
+.diagBtn.armed{
+  opacity:1;
+  filter:none;
+  border-color:#7f7868;
+  box-shadow:0 0 0 2px rgba(47,111,237,0.12);
+}
+
+@keyframes parNeedInputPulse{
+  0%, 100% { box-shadow:0 0 0 2px rgba(207,90,75,0.10); }
+  50% { box-shadow:0 0 0 5px rgba(207,90,75,0.18); }
+}
+
+.parDiagPlus,
+.parDiagMinus,
+.diagPlus,
+.diagMinus{
+  position:absolute;
+  font-weight:800;
+  line-height:1;
+  color:#2f2f2f;
+  pointer-events:none;
+}
+
+.parDiagPlus,
+.diagPlus{
+  top:6px;
+  right:8px;
+  font-size:18px;
+}
+
+.parDiagMinus,
+.diagMinus{
+  bottom:6px;
+  left:8px;
+  font-size:18px;
+}
+
+.holePanel{
+  position:relative;
+  width:100%;
+  min-width:0;
+  aspect-ratio:430 / 220;
+  margin-left:0;
+}
+
+.holeMoveSvg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+
+.holeMoveTrack{
+  fill:none;
+  stroke:#2f2f2f;
+  stroke-width:2.2;
+}
+
+.holeSvgBtnCircle{
+  fill:#fffefb;
+  stroke:#9a9483;
+  stroke-width:1.8;
+  cursor:pointer;
+}
+
+.holeSvgBtnCircle.current{
+  fill:#2f6fed;
+  stroke:#2f6fed;
+}
+
+.holeSvgBtnText{
+  font-weight:700;
+  fill:#1f1f1f;
+  text-anchor:middle;
+  dominant-baseline:central;
+  pointer-events:none;
+}
+
+.holeSvgBtnText.current{
+  fill:#ffffff;
+}
+
+.holeSvgBtnSubText{
+  font-weight:700;
+  fill:#555;
+  text-anchor:middle;
+  dominant-baseline:central;
+  pointer-events:none;
+}
+
+.holeSvgBtnSubText.current{
+  fill:#ffffff;
+  opacity:0.92;
+}
+
+.nextSvgBtn{
+  fill:#fffefb;
+  stroke:#8f8a7b;
+  stroke-width:1.6;
+  cursor:pointer;
+}
+
+.nextSvgText{
+  fill:#cf5a4b;
+  font-weight:700;
+  text-anchor:middle;
+  dominant-baseline:central;
+  pointer-events:none;
+}
+
+.holeBtn{
+  position:absolute;
+  width:var(--hole-btn-size);
+  height:var(--hole-btn-size);
+  min-height:var(--hole-btn-size);
+  padding:0;
+  border-radius:50%;
+  border:1.6px solid #8f8a7b;
+  background:#fffefb;
+  color:#222;
+  font-size:20px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.holeBtn.current{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+
+.nextHoleBtn{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
+  width:var(--next-btn-w);
+  height:var(--next-btn-h);
+  min-height:var(--next-btn-h);
+  border-radius:999px;
+  border:1.6px solid #8f8a7b;
+  background:#fffefb;
+  color:#cf5a4b;
+  font-size:26px;
+  font-weight:800;
+  padding:0;
+}
+
+/* Player input cards */
+.playerCard{
+  border:1px solid #9a9483;
+  border-radius:12px;
+  background:var(--panel);
+  padding:6px 8px;
+  margin:4px 0;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04);
+}
+
+.playerName{
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:3px;
+  text-align:left;
+  color:#202020;
+}
+
+.playerCompactRow{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+}
+
+.metricMini{
+  min-width:0;
+  border:1px solid #c9c2b0;
+  border-radius:12px;
+  background:#fffdf9;
+  padding:4px 5px;
+}
+
+.metricMiniLabel{
+  font-size:12px;
+  font-weight:700;
+  line-height:1.1;
+  margin-bottom:3px;
+  text-align:left;
+  padding-left:2px;
+  color:#202020;
+}
+
+.controlMini{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--diag-size);
+  align-items:center;
+  gap:4px;
+}
+
+.valueText{
+  min-width:0;
+  min-height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--value-font);
+  font-weight:800;
+  line-height:1;
+  padding:0 2px;
+  overflow:hidden;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  color:#111;
+}
+
+.mainButtons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  margin:8px 0 8px;
+}
+
+.modeControls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  margin:8px 0 8px;
+}
+
+.screenTopBar{
+  position:fixed;
+  right:calc(16px + env(safe-area-inset-right, 0px));
+  bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index:950;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.screenTopBar button{
+  min-height:44px;
+  padding:12px 16px;
+  font-size:15px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.95);
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+.settingsOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  z-index:1000;
+}
+
+.settingsModal{
+  width:min(520px, 96vw);
+  max-height:90vh;
+  overflow:auto;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.22);
+}
+
+.settingsTitle{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+.settingRows{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin:10px 0 12px;
+}
+
+.settingRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto auto;
+  gap:8px;
+  align-items:center;
+}
+
+.settingName{
+  text-align:left;
+  font-size:14px;
+  font-weight:700;
+}
+
+.settingValue{
+  min-width:72px;
+  text-align:center;
+  font-weight:800;
+}
+
+.settingsTestWrap{
+  margin:10px auto 12px;
+  max-width:260px;
+}
+
+.settingsButtons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  margin-top:10px;
+}
+
+.subRow{
+  background:var(--sum1);
+  font-weight:700;
+}
+
+.totalRow{
+  background:var(--sum2);
+  font-weight:700;
+}
+
+.historyTable td,
+.historyTable th{
+  font-size:13px;
+}
+
+.historyTable .actionCell{
+  white-space:nowrap;
+}
+
+.fileRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  justify-content:center;
+}
+
+.note{
+  font-size:12px;
+  color:var(--sub);
+}
+
+.scoreCellWrap{
+  position:relative;
+  min-height:38px;
+}
+
+.scoreCellMain{
+  position:absolute;
+  left:44%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  font-size:17px;
+  font-weight:700;
+  line-height:1.1;
+  white-space:nowrap;
+}
+
+.scoreCellCornerTop,
+.scoreCellCornerBottom{
+  position:absolute;
+  right:4px;
+  font-size:12px;
+  line-height:1;
+  color:#333;
+  white-space:nowrap;
+}
+
+.scoreCellCornerTop{
+  top:2px;
+}
+
+.scoreCellCornerBottom{
+  bottom:2px;
+}
+
+.summaryCurrentRow td{
+  background:#f3efe5;
+}
+
+.summaryCurrentRow td:first-child{
+  background:#e4dccb;
+  font-weight:800;
+}
+
+.summaryArea{
+  max-width:1100px;
+  margin:0 auto 10px;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  background:rgba(28,28,28,0.94);
+  color:#fff;
+  padding:11px 14px;
+  border-radius:12px;
+  font-size:14px;
+  line-height:1.2;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:9999;
+  box-shadow:0 4px 14px rgba(0,0,0,0.22);
+  max-width:min(88vw, 420px);
+}
+
+.toast.show{
+  opacity:1;
+}
+
+@media (max-width:640px){
+  td,th{ font-size:13px; padding:5px 3px; }
+
+  :root{
+    --diag-size-base:52px;
+    --value-font-base:20px;
+    --hole-btn-h:36px;
+    --hole-btn-size:42px;
+    --next-btn-w:112px;
+    --next-btn-h:54px;
+  }
+
+  .topGrid{
+    grid-template-columns:minmax(82px, 96px) minmax(0, 1fr);
+    gap:8px;
+  }
+
+  .holeLabel{
+    font-size:26px;
+  }
+
+  .parTitle{
+    font-size:17px;
+  }
+
+  .parValue{
+    font-size:26px;
+  }
+
+  .holePanel{
+    width:100%;
+    margin-left:0;
+  }
+
+  .holeBtn{
+    font-size:18px;
+  }
+
+  .nextHoleBtn{
+    font-size:23px;
+  }
+
+  .scoreCellMain{ font-size:16px; }
+  .scoreCellSub{ font-size:13px; }
+
+  .playerCompactRow{ gap:6px; }
+  .metricMini{ padding:4px 4px; }
+  .controlMini{ gap:3px; }
+
+  .courseNameRow{
+    gap:8px;
+  }
+
+  .shortCourseInput{
+    width:120px;
+    min-width:76px;
+  }
+
+  .diagPlus,
+  .parDiagPlus{
+    top:6px;
+    right:8px;
+    font-size:17px;
+  }
+
+  .diagMinus,
+  .parDiagMinus{
+    bottom:6px;
+    left:8px;
+    font-size:17px;
+  }
+}
+
+@media (max-width:420px){
+  :root{
+    --diag-size-base:48px;
+    --value-font-base:19px;
+    --hole-btn-size:34px;
+    --next-btn-w:90px;
+    --next-btn-h:44px;
+  }
+
+  body{
+    padding:4px;
+  }
+
+  .topBlock{
+    padding:8px 6px;
+  }
+
+  .topGrid{
+    grid-template-columns:74px minmax(0, 1fr);
+    gap:4px;
+  }
+
+  .holeLabel{
+    font-size:22px;
+  }
+
+  .parTitle{
+    font-size:16px;
+  }
+
+  .parValue{
+    font-size:24px;
+  }
+
+  .leftPanel{
+    gap:8px;
+  }
+
+  .nextHoleBtn{
+    font-size:20px;
+  }
+}
+
+
+.parPrepActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:10px 0;
+}
+
+.parPrepBox{
+  width:100%;
+  min-height:42px;
+  height:42px;
+  resize:none;
+  font-size:14px;
+  padding:10px;
+  border:1px solid #bbb;
+  border-radius:10px;
+  box-sizing:border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.parPrepBox.readonly{
+  background:#f8f8f8;
+}
+
+.parPrepStatus{
+  margin-top:8px;
+  white-space:pre-wrap;
+  line-height:1.45;
+  font-size:14px;
+}
+
+.parPrepStatus.ok{
+  color:#0b6b2e;
+}
+
+.parPrepStatus.ng{
+  color:#9b1c1c;
+}
+
+.emptyValue{
+  color:#888;
+  font-style:italic;
+}
+
+.summaryUnenteredRow td{
+  color:#888;
+}
+
+</style>
+</head>
+<body>
+
+<h3>Golf Score Pro Version 10</h3>
+<div id="statusBar" class="statusBar"></div>
+
+<div id="setupArea">
+  <div class="screenTopBar"><button onclick="openSettingsPanel()">設定</button></div>
+  <div class="sectionCard">
+    <h4>新規ラウンド作成</h4>
+    ゴルフ場<br>
+    <input id="courseName" placeholder="例: ○○カントリークラブ"><br>
+    日付<br>
+    <input type="date" id="playDate"><br>
+    <div class="courseNameRow">
+      <div class="courseNameItem">
+        <div class="courseNameLabel">前半コース</div>
+        <input id="frontCourseName" class="shortCourseInput" placeholder="例: 南">
+      </div>
+      <div class="courseNameItem">
+        <div class="courseNameLabel">後半コース</div>
+        <input id="backCourseName" class="shortCourseInput" placeholder="例: 北">
+      </div>
+    </div>
+
+    <h4>プレイヤー人数</h4>
+    <div>
+      <button onclick="setPlayers(1)">1</button>
+      <button onclick="setPlayers(2)">2</button>
+      <button onclick="setPlayers(3)">3</button>
+      <button onclick="setPlayers(4)">4</button>
+    </div>
+
+    <div id="nameSelectArea"></div>
+
+    <div class="mainButtons">
+      <button onclick="openTemplateFileDialog()">保存ファイルから新規ラウンド</button>
+      <button onclick="swapFrontBackInSetup()">前後半を交換</button>
+    </div>
+    <input type="file" id="templateFileLoader" accept=".json,application/json" class="hidden" onchange="loadTemplateFromFile(event)">
+
+    <h4>Par設定</h4>
+    <div class="note">ChatGPTで調べる場合は、現在の入力内容を使ってプロンプトをコピーできます。現地でスコアカードを見ながら直接入力しても構いません。</div>
+    <div class="parPrepActions">
+      <button onclick="generateParPromptAndCopy()">プロンプト生成＆コピー</button>
+          </div>
+    <div class="note">例: 4,4,3,5,4,4,5,3,4 4,5,4,3,4,4,3,5,4<br>前半と後半は空白または改行で区切れます。18個まとめて入力しても使えます。</div>
+    <textarea id="parCsvInput" class="parPrepBox" placeholder="例: 4,4,3,5,4,4,5,3,4 4,5,4,3,4,4,3,5,4"></textarea>
+    <div id="parPrepStatus" class="parPrepStatus"></div>
+  </div>
+
+  <div class="sectionCard">
+    <h4>ファイル入力（現在ラウンド復元）</h4>
+    <div class="fileRow">
+      <input type="file" id="fileLoader" accept=".json,application/json" onchange="loadFromFile(event)">
+    </div>
+    <div class="mainButtons">
+      <button onclick="showHistoryList()">保存済み履歴を表示</button>
+      <button onclick="resumeAutosave()">自動保存中のラウンドを再開</button>
+    </div>
+    <div class="note">Safariの再読み込み対策として、入力のたびに自動保存されます。保存ファイルから新規ラウンドを作る場合は、上の「保存ファイルから新規ラウンド」を使ってください。</div>
+  </div>
+
+  <div id="historyArea" class="historyWrap hidden"></div>
+
+</div>
+
+<div id="gameArea" class="hidden">
+  <div class="screenTopBar"><button onclick="openSettingsPanel()">設定</button></div>
+  <div id="roundTitle" class="roundTitle"></div>
+
+  <div id="topBlock" class="topBlock"></div>
+
+  <div id="inputArea" class="inputArea"></div>
+
+  <div class="modeControls">
+    <button id="modeToggleBtn" class="primary" onclick="toggleScoreMode()">表示: ±</button>
+    <button onclick="saveToHistory()">履歴保存</button>
+    <button onclick="exportToFile()">ファイル保存</button>
+  </div>
+
+  <div id="summaryArea" class="summaryArea"></div>
+
+  <div class="modeControls">
+    <button id="modeToggleBtnBottom" class="primary" onclick="toggleScoreMode()">表示: ±</button>
+    <button onclick="copySummaryTableToClipboard()">集計表をPNGコピー</button>
+  </div>
+
+  <div class="mainButtons">
+    <button onclick="swapFrontBackDuringPlay()">前後半を交換</button>
+    <button onclick="resetRound()">新規ラウンド</button>
+  </div>
+</div>
+
+
+<div id="settingsOverlay" class="settingsOverlay hidden" onclick="onSettingsOverlayClick(event)">
+  <div class="settingsModal" onclick="event.stopPropagation()">
+    <div class="settingsTitle">設定</div>
+    <div class="note">誤操作防止ボタンのタイミングと入力ボタンサイズを調整できます。変更はすぐ反映されます。</div>
+    <div class="settingRows">
+      <div class="settingRow">
+        <div class="settingName">長押し時間</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('holdMs', -100)">−</button>
+        <div id="settingHoldValue" class="settingValue">0.6秒</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('holdMs', 100)">+</button>
+      </div>
+      <div class="settingRow">
+        <div class="settingName">離して有効化</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('activateDelayMs', -50)">−</button>
+        <div id="settingActivateValue" class="settingValue">0.2秒</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('activateDelayMs', 50)">+</button>
+      </div>
+      <div class="settingRow">
+        <div class="settingName">再ロック時間</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('relockMs', -500)">−</button>
+        <div id="settingRelockValue" class="settingValue">3.0秒</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('relockMs', 500)">+</button>
+      </div>
+      <div class="settingRow">
+        <div class="settingName">入力ボタンサイズ</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('stepperScale', -5)">−</button>
+        <div id="settingStepperScaleValue" class="settingValue">100%</div>
+        <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('stepperScale', 5)">+</button>
+      </div>
+    </div>
+    <div class="note">試用ボタン</div>
+    <div class="settingsTestWrap">
+      <div class="metricMini">
+        <div class="metricMiniLabel">テスト</div>
+        <div class="controlMini">
+          <div id="settingsTestValue" class="valueText">4</div>
+          <div id="settingsTestDiag" class="diagBtn locked"
+               data-control-key="settings:test"
+               data-player="-1"
+               data-type="settingsTest"
+               onclick="diagClickSettingsTest(event)"
+               onpointerdown="beginSettingsTestPress(event)"
+               onpointerup="endSettingsTestPress(event)"
+               onpointercancel="cancelSettingsTestPress(event)"
+               aria-disabled="true"
+               title="長押しで変更">
+            <div class="diagPlus">+</div>
+            <div class="diagMinus">−</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settingsButtons">
+      <button onclick="resetTimingSettings()">初期値に戻す</button>
+      <button class="primary" onclick="closeSettingsPanel()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+
+
+<script>
+const FORMAT_VERSION = 2;
+const AUTOSAVE_KEY = "golfScoreCurrentRound_final_v4";
+const HISTORY_KEY = "golfScoreHistory_final_v4";
+const UNSET = -1;
+
+let availableNames = ["菅原","吉森","高嶋","佐々木","ゲスト"];
+let players = 0;
+let playerNames = [];
+let guestCustomNames = [];
+let data = [];
+let currentHole = 0;
+const TIMING_SETTINGS_KEY = "golfScoreTimingSettings_v2";
+const defaultTimingSettings = {
+  holdMs: 600,
+  activateDelayMs: 200,
+  relockMs: 3000,
+  stepperScale: 100
+};
+let timingSettings = loadTimingSettings();
+let controlStateMap = {};
+applyStepperScale();
+let scoreMode = "diff";
+let toastTimer = null;
+let loadedTemplate = null;
+let settingsTestValue = 4;
+
+function updateStatus(message){
+  document.getElementById("statusBar").innerText = message || "";
+}
+
+function showToast(message){
+  const toast = document.getElementById("toast");
+  if(!toast) return;
+  toast.textContent = message;
+  toast.classList.add("show");
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+    toastTimer = null;
+  }, 1600);
+}
+
+function todayString(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function escapeHtml(str){
+  return String(str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+function clamp(value, min, max){
+  return Math.min(max, Math.max(min, value));
+}
+
+function loadTimingSettings(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(TIMING_SETTINGS_KEY) || "{}");
+    return {
+      holdMs: clamp(Number(raw.holdMs) || defaultTimingSettings.holdMs, 300, 1200),
+      activateDelayMs: clamp(Number(raw.activateDelayMs) || defaultTimingSettings.activateDelayMs, 0, 800),
+      relockMs: clamp(Number(raw.relockMs) || defaultTimingSettings.relockMs, 1000, 6000),
+      stepperScale: clamp(Number(raw.stepperScale) || defaultTimingSettings.stepperScale, 80, 140)
+    };
+  }catch(e){
+    return { ...defaultTimingSettings };
+  }
+}
+
+function saveTimingSettings(){
+  localStorage.setItem(TIMING_SETTINGS_KEY, JSON.stringify(timingSettings));
+}
+
+function applyStepperScale(){
+  document.documentElement.style.setProperty("--stepper-scale", String((timingSettings.stepperScale || 100) / 100));
+}
+
+function formatSecondsLabel(ms){
+  return (ms / 1000).toFixed(1) + "秒";
+}
+
+function formatPercentLabel(value){
+  return String(value) + "%";
+}
+
+function renderTimingSettingsPanel(){
+  const holdEl = document.getElementById("settingHoldValue");
+  const actEl = document.getElementById("settingActivateValue");
+  const relockEl = document.getElementById("settingRelockValue");
+  const scaleEl = document.getElementById("settingStepperScaleValue");
+  if(holdEl) holdEl.textContent = formatSecondsLabel(timingSettings.holdMs);
+  if(actEl) actEl.textContent = formatSecondsLabel(timingSettings.activateDelayMs);
+  if(relockEl) relockEl.textContent = formatSecondsLabel(timingSettings.relockMs);
+  if(scaleEl) scaleEl.textContent = formatPercentLabel(timingSettings.stepperScale);
+  const testVal = document.getElementById("settingsTestValue");
+  if(testVal) testVal.textContent = String(settingsTestValue);
+  applySettingsTestVisual();
+}
+
+function resetAllProtectedControls(){
+  Object.keys(controlStateMap).forEach(key => resetProtectedControl(key));
+  refreshProtectedControlsVisual();
+  renderTimingSettingsPanel();
+}
+
+function adjustTimingSetting(name, delta){
+  const conf = {
+    holdMs: { min: 300, max: 1200, step: 100, kind: "timing" },
+    activateDelayMs: { min: 0, max: 800, step: 50, kind: "timing" },
+    relockMs: { min: 1000, max: 6000, step: 500, kind: "timing" },
+    stepperScale: { min: 80, max: 140, step: 5, kind: "scale" }
+  }[name];
+  if(!conf) return;
+  const nextValue = clamp(timingSettings[name] + delta, conf.min, conf.max);
+  if(nextValue === timingSettings[name]) return;
+  timingSettings[name] = nextValue;
+  saveTimingSettings();
+  if(conf.kind === "scale"){
+    applyStepperScale();
+    renderHole();
+  }else{
+    resetAllProtectedControls();
+  }
+  renderTimingSettingsPanel();
+}
+
+function resetTimingSettings(){
+  timingSettings = { ...defaultTimingSettings };
+  saveTimingSettings();
+  applyStepperScale();
+  resetAllProtectedControls();
+  renderHole();
+  renderTimingSettingsPanel();
+}
+
+function openSettingsPanel(){
+  const overlay = document.getElementById("settingsOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("hidden");
+  renderTimingSettingsPanel();
+}
+
+function closeSettingsPanel(){
+  const overlay = document.getElementById("settingsOverlay");
+  if(!overlay) return;
+  overlay.classList.add("hidden");
+}
+
+function onSettingsOverlayClick(event){
+  if(event.target && event.target.id === "settingsOverlay"){
+    closeSettingsPanel();
+  }
+}
+
+function getSettingsTestKey(){
+  return "settings:test";
+}
+
+function isSettingsTestEnabled(){
+  return isProtectedControlEnabled(getSettingsTestKey(), false);
+}
+
+function applySettingsTestVisual(){
+  const el = document.getElementById("settingsTestDiag");
+  if(!el) return;
+  const enabled = isSettingsTestEnabled();
+  const armed = isProtectedControlArmed(getSettingsTestKey());
+  el.classList.remove("required", "locked", "armed", "unlocked");
+  el.classList.add(enabled ? "unlocked" : (armed ? "armed" : "locked"));
+  el.setAttribute("aria-disabled", enabled ? "false" : "true");
+  el.setAttribute("title", enabled ? "変更が有効です" : (armed ? "離すと変更を有効化します" : "長押しで変更"));
+}
+
+function beginSettingsTestPress(event){
+  beginProtectedPress(event, getSettingsTestKey(), false);
+}
+
+function endSettingsTestPress(event){
+  endProtectedPress(event, getSettingsTestKey(), false);
+}
+
+function cancelSettingsTestPress(event){
+  cancelProtectedPress(event, getSettingsTestKey());
+}
+
+function diagClickSettingsTest(event){
+  const key = getSettingsTestKey();
+  if(isProtectedClickSuppressed(key)) return;
+  if(!isSettingsTestEnabled()){
+    showToast("長押しで変更を有効化");
+    return;
+  }
+  const touch = event.changedTouches && event.changedTouches[0];
+  const clientX = touch ? touch.clientX : event.clientX;
+  const clientY = touch ? touch.clientY : event.clientY;
+  const r = event.currentTarget.getBoundingClientRect();
+  const x = clientX - r.left;
+  const y = clientY - r.top;
+  settingsTestValue += (y < x) ? 1 : -1;
+  if(settingsTestValue < 1) settingsTestValue = 1;
+  renderTimingSettingsPanel();
+  scheduleProtectedRelock(key, false);
+}
+
+function getCourseSegmentNames(state){
+  const front = (state && typeof state.frontCourseName === "string" && state.frontCourseName.trim())
+    ? state.frontCourseName.trim()
+    : "OUT";
+  const back = (state && typeof state.backCourseName === "string" && state.backCourseName.trim())
+    ? state.backCourseName.trim()
+    : "IN";
+  return { front, back };
+}
+
+function currentHoleCourseLabel(holeIndex, stateLike){
+  const names = getCourseSegmentNames(stateLike || currentStateObject());
+  const holeNo = (holeIndex % 9) + 1;
+  const segment = holeIndex < 9 ? names.front : names.back;
+  return `${segment}-${holeNo}`;
+}
+
+function isValidPar(value){
+  return Number.isFinite(value) && value >= 3 && value <= 6;
+}
+
+function isEnteredScore(value){
+  return Number.isFinite(value) && value >= 1;
+}
+
+function isEnteredCount(value){
+  return Number.isFinite(value) && value >= 0;
+}
+
+function holeHasAnyPlayData(hole){
+  if(!hole || !Array.isArray(hole.players)) return false;
+  return hole.players.some(player =>
+    isEnteredScore(player?.score) ||
+    isEnteredCount(player?.putt) ||
+    isEnteredCount(player?.olympic)
+  );
+}
+
+function makeInitialData(playerCount){
+  const arr = [];
+  for(let h=0; h<18; h++){
+    arr[h] = { par:UNSET, players:[] };
+    for(let p=0; p<playerCount; p++){
+      arr[h].players[p] = { score:UNSET, putt:UNSET, olympic:UNSET };
+    }
+  }
+  return arr;
+}
+
+function currentStateObject(){
+  return {
+    formatVersion: FORMAT_VERSION,
+    courseName: document.getElementById("courseName").value,
+    playDate: document.getElementById("playDate").value,
+    frontCourseName: document.getElementById("frontCourseName").value.trim(),
+    backCourseName: document.getElementById("backCourseName").value.trim(),
+    players,
+    playerNames,
+    data,
+    currentHole,
+    scoreMode,
+    savedAt: new Date().toISOString()
+  };
+}
+
+function saveCurrentRound(){
+  localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(currentStateObject()));
+  updateStatus("自動保存済み");
+}
+
+function normalizeNewPar(rawPar){
+  return isValidPar(rawPar) ? rawPar : UNSET;
+}
+
+function normalizeNewScore(rawScore){
+  return isEnteredScore(rawScore) ? rawScore : UNSET;
+}
+
+function normalizeNewCount(rawValue){
+  return isEnteredCount(rawValue) ? rawValue : UNSET;
+}
+
+function normalizeHoleFromState(hole, playerCount, isLegacy){
+  const parBase = Number.isFinite(hole?.par) ? Number(hole.par) : (isLegacy ? 4 : UNSET);
+  const par = isLegacy ? (isValidPar(parBase) ? parBase : 4) : normalizeNewPar(parBase);
+  const result = { par, players: [] };
+
+  for(let p=0; p<playerCount; p++){
+    const rawPlayer = Array.isArray(hole?.players) ? hole.players[p] : null;
+    if(isLegacy){
+      const legacyRelScore = Number.isFinite(rawPlayer?.score) ? Number(rawPlayer.score) : 0;
+      const actualScore = isValidPar(par) ? par + legacyRelScore : UNSET;
+      result.players[p] = {
+        score: isEnteredScore(actualScore) ? actualScore : UNSET,
+        putt: Number.isFinite(rawPlayer?.putt) ? Number(rawPlayer.putt) : 0,
+        olympic: Number.isFinite(rawPlayer?.olympic) ? Number(rawPlayer.olympic) : 0
+      };
+    }else{
+      result.players[p] = {
+        score: normalizeNewScore(rawPlayer?.score),
+        putt: normalizeNewCount(rawPlayer?.putt),
+        olympic: normalizeNewCount(rawPlayer?.olympic)
+      };
+    }
+  }
+
+  return result;
+}
+
+function loadStateObject(state){
+  if(!state || !Array.isArray(state.playerNames) || !Array.isArray(state.data) || state.data.length !== 18){
+    alert("無効なデータです");
+    return false;
+  }
+
+  players = state.players || state.playerNames.length || 0;
+  playerNames = state.playerNames.slice(0, players);
+
+  if(players < 1){
+    alert("プレイヤー情報が不正です");
+    return false;
+  }
+
+  const isLegacy = !Number.isFinite(state.formatVersion) || state.formatVersion < FORMAT_VERSION;
+
+  data = state.data.map(hole => normalizeHoleFromState(hole, players, isLegacy));
+  loadedTemplate = null;
+  currentHole = Number.isInteger(state.currentHole) ? Math.min(17, Math.max(0, state.currentHole)) : 0;
+  scoreMode = state.scoreMode === "abs" ? "abs" : "diff";
+
+  document.getElementById("courseName").value = state.courseName || "";
+  document.getElementById("playDate").value = state.playDate || "";
+  document.getElementById("frontCourseName").value = state.frontCourseName || "";
+  document.getElementById("backCourseName").value = state.backCourseName || "";
+
+  document.getElementById("setupArea").classList.add("hidden");
+  document.getElementById("gameArea").classList.remove("hidden");
+  document.getElementById("historyArea").classList.add("hidden");
+
+  document.getElementById("roundTitle").innerText =
+    (state.courseName || "") + "  " + (state.playDate || "");
+
+  updateScoreModeToggle();
+  renderHole();
+  saveCurrentRound();
+  return true;
+}
+
+function loadCurrentRound(){
+  const raw = localStorage.getItem(AUTOSAVE_KEY);
+  if(!raw) return false;
+  try{
+    const state = JSON.parse(raw);
+    const ok = loadStateObject(state);
+    if(ok){
+      updateStatus("保存済みデータを復元しました");
+      showToast("自動保存データを再開しました");
+    }
+    return ok;
+  }catch(e){
+    console.error(e);
+    updateStatus("保存データの復元に失敗しました");
+    return false;
+  }
+}
+
+function clearCurrentRound(){
+  localStorage.removeItem(AUTOSAVE_KEY);
+}
+
+function compactParList(pars){
+  if(!Array.isArray(pars) || pars.length !== 18) return "";
+  return pars.slice(0,9).join(",") + " " + pars.slice(9,18).join(",");
+}
+
+function getDefaultNameForSlot(index, usedNames){
+  for(const name of availableNames){
+    if(name === "ゲスト") continue;
+    if(!usedNames.has(name)) return name;
+  }
+  return availableNames.find(name => name !== "ゲスト") || "ゲスト";
+}
+
+function collectSetupSelectionSnapshot(){
+  const names = [];
+  const count = Number.isInteger(players) ? players : 0;
+  for(let i=0; i<count; i++){
+    const sel = document.getElementById("playerSel" + i);
+    if(!sel) continue;
+    if(sel.value === "ゲスト"){
+      names.push(sanitizeGuestName(guestCustomNames[i] || "") || "ゲスト");
+    }else{
+      names.push(sel.value);
+    }
+  }
+  return names;
+}
+
+function applyPlayerNamesToSetup(names, playerCount){
+  const used = new Set();
+  for(let i=0; i<playerCount; i++){
+    const sel = document.getElementById("playerSel" + i);
+    if(!sel) continue;
+    const rawName = Array.isArray(names) ? String(names[i] || "").trim() : "";
+    if(rawName && availableNames.includes(rawName) && rawName !== "ゲスト"){
+      sel.value = rawName;
+      guestCustomNames[i] = "";
+      used.add(rawName);
+    }else if(rawName){
+      sel.value = "ゲスト";
+      guestCustomNames[i] = sanitizeGuestName(rawName);
+      used.add(rawName);
+    }else{
+      const fallback = getDefaultNameForSlot(i, used);
+      sel.value = fallback;
+      guestCustomNames[i] = "";
+      used.add(fallback);
+    }
+    updateGuestOptionDisplay(i);
+    updateGuestNameHint(i);
+  }
+  playerNames = getSelectedNamesFromSetup();
+}
+
+function extractTemplateFromState(state){
+  if(!state || !Array.isArray(state.data) || state.data.length !== 18){
+    throw new Error("テンプレートとして使える18ホール分のデータが見つかりません");
+  }
+  const playerCount = Number.isInteger(state.players) && state.players > 0
+    ? state.players
+    : (Array.isArray(state.playerNames) ? state.playerNames.length : 0);
+  if(playerCount < 1){
+    throw new Error("プレイヤー情報が見つかりません");
+  }
+
+  const isLegacy = !Number.isFinite(state.formatVersion) || state.formatVersion < FORMAT_VERSION;
+  const normalizedHoles = state.data.map(hole => normalizeHoleFromState(hole, playerCount, isLegacy));
+  const pars = normalizedHoles.map(hole => hole.par);
+  if(pars.length !== 18 || pars.some(par => !isValidPar(par))){
+    throw new Error("18ホール分のPar情報が見つかりません");
+  }
+
+  const rawNames = Array.isArray(state.playerNames) ? state.playerNames.slice(0, playerCount) : [];
+  const templateNames = [];
+  for(let i=0; i<playerCount; i++){
+    const name = String(rawNames[i] || "").trim();
+    templateNames.push(name || getDefaultNameForSlot(i, new Set(templateNames)));
+  }
+
+  return {
+    courseName: String(state.courseName || "").trim(),
+    frontCourseName: String(state.frontCourseName || "").trim(),
+    backCourseName: String(state.backCourseName || "").trim(),
+    pars,
+    playerNames: templateNames,
+    playerCount
+  };
+}
+
+function applyLoadedTemplateToSetup(template){
+  loadedTemplate = {
+    courseName: template.courseName,
+    frontCourseName: template.frontCourseName,
+    backCourseName: template.backCourseName,
+    pars: template.pars.slice(),
+    playerNames: template.playerNames.slice(),
+    playerCount: template.playerCount
+  };
+
+  document.getElementById("courseName").value = loadedTemplate.courseName || "";
+  document.getElementById("playDate").value = todayString();
+  document.getElementById("frontCourseName").value = loadedTemplate.frontCourseName || "";
+  document.getElementById("backCourseName").value = loadedTemplate.backCourseName || "";
+
+  setPlayers(loadedTemplate.playerCount, { preserve:false, initialNames: loadedTemplate.playerNames.slice() });
+
+  const parInput = document.getElementById("parCsvInput");
+  if(parInput) parInput.value = compactParList(loadedTemplate.pars);
+  setParPrepStatus("保存ファイルを新規ラウンド用テンプレートとして反映しました。必要に応じて編集してください。", true);
+  updateStatus("保存ファイルから新規ラウンド用テンプレートを読み込みました");
+  showToast("テンプレートを読み込みました");
+}
+
+function openTemplateFileDialog(){
+  const input = document.getElementById("templateFileLoader");
+  if(input) input.click();
+}
+
+function loadTemplateFromFile(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const obj = JSON.parse(e.target.result);
+      const template = extractTemplateFromState(obj);
+      applyLoadedTemplateToSetup(template);
+    }catch(err){
+      console.error(err);
+      alert("テンプレート読込エラー: 新規ラウンド用に使えるJSONではありません");
+      updateStatus("テンプレート読込に失敗しました");
+      showToast("テンプレート読込に失敗しました");
+    }finally{
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function swapFrontBackInSetup(){
+  const frontEl = document.getElementById("frontCourseName");
+  const backEl = document.getElementById("backCourseName");
+  if(frontEl && backEl){
+    const tmp = frontEl.value;
+    frontEl.value = backEl.value;
+    backEl.value = tmp;
+  }
+
+  const input = document.getElementById("parCsvInput");
+  const result = parseParCsv(input ? input.value : "");
+  if(result.ok){
+    const swappedPars = result.pars.slice(9).concat(result.pars.slice(0,9));
+    if(input) input.value = compactParList(swappedPars);
+    if(loadedTemplate && Array.isArray(loadedTemplate.pars) && loadedTemplate.pars.length === 18){
+      loadedTemplate.pars = swappedPars.slice();
+      const tmpName = loadedTemplate.frontCourseName;
+      loadedTemplate.frontCourseName = loadedTemplate.backCourseName;
+      loadedTemplate.backCourseName = tmpName;
+    }
+    setParPrepStatus("前半・後半コース名とParを交換しました。", true);
+  }else{
+    if(loadedTemplate && Array.isArray(loadedTemplate.pars) && loadedTemplate.pars.length === 18){
+      const swappedPars = loadedTemplate.pars.slice(9).concat(loadedTemplate.pars.slice(0,9));
+      loadedTemplate.pars = swappedPars.slice();
+      const tmpName = loadedTemplate.frontCourseName;
+      loadedTemplate.frontCourseName = loadedTemplate.backCourseName;
+      loadedTemplate.backCourseName = tmpName;
+      if(input) input.value = compactParList(swappedPars);
+      setParPrepStatus("前半・後半コース名とParを交換しました。", true);
+    }else{
+      setParPrepStatus("前半・後半コース名を交換しました。Parは未設定のため交換対象がありません。", true);
+    }
+  }
+
+  updateStatus("前後半を交換しました");
+  showToast("前後半を交換しました");
+}
+
+function getHistory(){
+  try{
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  }catch(e){
+    return [];
+  }
+}
+
+function setHistory(history){
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function sanitizeGuestName(raw){
+  return String(raw || "").trim().slice(0, 12);
+}
+
+function updateGuestNameHint(i){
+  const el = document.getElementById("guestNameHint" + i);
+  if(!el) return;
+  const name = sanitizeGuestName(guestCustomNames[i] || "");
+  el.textContent = name ? `入力名: ${name}` : "";
+}
+
+function updateGuestOptionDisplay(i){
+  const sel = document.getElementById("playerSel" + i);
+  if(!sel) return;
+  const guestOption = Array.from(sel.options).find(opt => opt.value === "ゲスト");
+  if(!guestOption) return;
+  const name = sanitizeGuestName(guestCustomNames[i] || "");
+  guestOption.textContent = name || "ゲスト";
+}
+
+function promptGuestName(i){
+  const current = sanitizeGuestName(guestCustomNames[i] || "");
+  const entered = prompt("ゲスト名を入力してください", current);
+  if(entered === null){
+    updateGuestOptionDisplay(i);
+    updateGuestNameHint(i);
+    return;
+  }
+  guestCustomNames[i] = sanitizeGuestName(entered);
+  updateGuestOptionDisplay(i);
+  updateGuestNameHint(i);
+}
+
+function handlePlayerNameSelection(i){
+  const sel = document.getElementById("playerSel" + i);
+  if(!sel) return;
+  if(sel.value === "ゲスト"){
+    promptGuestName(i);
+  }else{
+    guestCustomNames[i] = "";
+    updateGuestOptionDisplay(i);
+    updateGuestNameHint(i);
+  }
+}
+
+function setPlayers(n, options={}){
+  const preserve = options.preserve !== false;
+  const previousNames = preserve
+    ? ((Array.isArray(options.initialNames) && options.initialNames.length) ? options.initialNames.slice() : collectSetupSelectionSnapshot())
+    : ((Array.isArray(options.initialNames) && options.initialNames.length) ? options.initialNames.slice() : []);
+  players = n;
+  guestCustomNames = Array.from({length:n}, (_, i) => "");
+  let html = "<h4>名前選択</h4>";
+  for(let i=0; i<n; i++){
+    html += "<div class='playerSelectRow'>";
+    html += "<select id='playerSel" + i + "' onchange='handlePlayerNameSelection(" + i + ")'>";
+    availableNames.forEach(name => {
+      html += "<option value='" + escapeHtml(name) + "'>" + escapeHtml(name) + "</option>";
+    });
+    html += "</select>";
+    html += "<div id='guestNameHint" + i + "' class='guestNameHint'></div>";
+    html += "</div>";
+  }
+  html += "<button class='primary' onclick='startGame()'>ラウンド開始</button>";
+  document.getElementById("nameSelectArea").innerHTML = html;
+  applyPlayerNamesToSetup(previousNames, n);
+  updateStatus("プレイヤー名を選択してください");
+}
+
+function startGame(){
+  const info = getDraftRoundInfo();
+  const infoErrs = validateDraftRoundInfo(info);
+  if(infoErrs.length){
+    const msg = infoErrs.join("\n");
+    setParPrepStatus(msg, false);
+    alert(msg);
+    return;
+  }
+
+  const input = document.getElementById("parCsvInput");
+  const csvText = input ? input.value.trim() : "";
+  const hasTemplatePars = loadedTemplate && Array.isArray(loadedTemplate.pars) && loadedTemplate.pars.length === 18;
+  const parsSourceText = csvText || (hasTemplatePars ? compactParList(loadedTemplate.pars) : "");
+
+  if(parsSourceText){
+    const result = parseParCsv(parsSourceText);
+    if(!result.ok){
+      const msg = result.errors.join("\n");
+      setParPrepStatus(msg, false);
+      alert(msg);
+      return;
+    }
+
+    const state = buildStateFromParCsv(info, result.pars);
+    const ok = loadStateObject(state);
+    if(ok){
+      setParPrepStatus("Parを適用してラウンドを開始しました。", true);
+      updateStatus("Par入力済みデータを適用しました");
+      showToast("Par入力済みデータを適用しました");
+    }
+    return;
+  }
+
+  playerNames = info.playerNames.slice();
+  players = info.players;
+  data = makeInitialData(players);
+  currentHole = 0;
+  scoreMode = "diff";
+
+  document.getElementById("setupArea").classList.add("hidden");
+  document.getElementById("gameArea").classList.remove("hidden");
+  document.getElementById("roundTitle").innerText = info.courseName + "  " + info.playDate;
+
+  updateScoreModeToggle();
+  renderHole();
+  saveCurrentRound();
+  updateStatus("新しいラウンドを開始しました");
+  showToast("新しいラウンドを開始しました");
+}
+
+function updateScoreModeToggle(){
+  const label = scoreMode === "abs" ? "表示: 打数" : "表示: ±";
+  ["modeToggleBtn", "modeToggleBtnBottom"].forEach(id => {
+    const btn = document.getElementById(id);
+    if(btn) btn.textContent = label;
+  });
+}
+
+function toggleScoreMode(){
+  scoreMode = scoreMode === "abs" ? "diff" : "abs";
+  updateScoreModeToggle();
+  renderHole();
+  saveCurrentRound();
+}
+
+function displayParValue(hole){
+  return isValidPar(hole?.par) ? String(hole.par) : "";
+}
+
+
+function getHoleEllipseParams(){
+  const holePanel = document.querySelector('.holePanel');
+  const leftPanel = document.querySelector('.leftPanel');
+  const baseBtnSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hole-btn-size')) || 52;
+  const nextBtnW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--next-btn-w')) || 132;
+  const nextBtnH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--next-btn-h')) || 64;
+
+  const leftHeight = leftPanel ? leftPanel.offsetHeight : 180;
+  const panelHeight = Math.max(150, Math.round(leftHeight));
+
+  // Safari では clientWidth が初回描画で不安定なことがあるため、実描画幅を優先
+  const rawWidth = holePanel ? holePanel.getBoundingClientRect().width : 430;
+  const panelWidth = Math.max(280, Math.round(rawWidth));
+
+  const W = panelWidth;
+  const H = panelHeight;
+  const cx = W / 2;
+  const cy = H / 2;
+
+  const isWidePad = window.innerWidth >= 900;
+  const btnSize = isWidePad ? Math.max(38, baseBtnSize - 12) : baseBtnSize;
+
+  const verticalInset = window.innerWidth < 500 ? btnSize * 0.28 : (isWidePad ? btnSize * 0.44 : btnSize * 0.48);
+  const ryByLayout = Math.max(42, H / 2 - verticalInset);
+  const minRyByNext = nextBtnH;
+  const ry = Math.max(minRyByNext, ryByLayout);
+
+  const maxAspect = window.innerWidth < 700 ? 1.75 : (isWidePad ? 2.20 : 1.45);
+
+  // 右端のボタンが切れにくいよう、横余白を少し多めに確保
+  const rxByWidth = W / 2 - btnSize * (isWidePad ? 0.72 : 0.98);
+  const rxByHeight = ry * maxAspect;
+
+  const minRxByNext = nextBtnW;
+  const rx = Math.max(minRxByNext, 88, Math.min(rxByWidth, rxByHeight));
+
+  return { W, H, cx, cy, rx, ry, btnSize };
+}
+
+function pointOnEllipse(ep, t){
+  return { x: ep.cx + ep.rx * Math.cos(t), y: ep.cy + ep.ry * Math.sin(t) };
+}
+
+function distPt(a, b){
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function advanceByChord(ep, t0, chord){
+  const p0 = pointOnEllipse(ep, t0);
+  const tMin = t0 + 1e-5;
+  const tMax = t0 + Math.PI - 1e-5;
+  const f = (t) => distPt(p0, pointOnEllipse(ep, t)) - chord;
+
+  let prevT = tMin, prevF = f(prevT), a = null, b = null;
+  for(let i = 1; i <= 2400; i++){
+    const t = tMin + (tMax - tMin) * i / 2400;
+    const ft = f(t);
+    if ((prevF <= 0 && ft >= 0) || (prevF >= 0 && ft <= 0)) { a = prevT; b = t; break; }
+    prevT = t; prevF = ft;
+  }
+  if (a === null) return null;
+
+  let fa = f(a);
+  for(let i = 0; i < 70; i++){
+    const m = (a + b) / 2, fm = f(m);
+    if ((fa <= 0 && fm >= 0) || (fa >= 0 && fm <= 0)) b = m;
+    else { a = m; fa = fm; }
+  }
+  return (a + b) / 2;
+}
+
+function equalChordPoints(ep, n, startT){
+  function cycleError(chord){
+    let t = startT;
+    for(let i = 0; i < n; i++){
+      const nextT = advanceByChord(ep, t, chord);
+      if (nextT === null) return null;
+      t = nextT;
+    }
+    return t - (startT + 2 * Math.PI);
+  }
+
+  const chordMax = 2 * Math.min(ep.rx, ep.ry) * 0.999;
+  let prevC = null, prevE = null, lo = null, hi = null;
+  for(let i = 1; i <= 700; i++){
+    const c = chordMax * i / 700, e = cycleError(c);
+    if (e === null) continue;
+    if (prevE !== null && prevE * e <= 0){ lo = prevC; hi = c; break; }
+    prevC = c; prevE = e;
+  }
+  if (lo === null || hi === null) {
+    const pts = [];
+    for(let i=0;i<n;i++) pts.push(pointOnEllipse(ep, startT + i * (2*Math.PI/n)));
+    return pts;
+  }
+
+  for(let i = 0; i < 70; i++){
+    const mid = (lo + hi) / 2, eLo = cycleError(lo), eMid = cycleError(mid);
+    if (eLo === null || eMid === null) break;
+    if (eLo * eMid <= 0) hi = mid; else lo = mid;
+  }
+
+  const chord = (lo + hi) / 2;
+  const pts = [];
+  let t = startT;
+  pts.push(pointOnEllipse(ep, t));
+  for(let i = 1; i < n; i++){
+    t = advanceByChord(ep, t, chord);
+    pts.push(pointOnEllipse(ep, t));
+  }
+  return pts;
+}
+
+function syncHoleMoveLayout(){
+  const holePanel = document.querySelector('.holePanel');
+  const svg = document.getElementById('holeMoveSvg');
+  if (!holePanel || !svg) return;
+
+  const applyLayout = () => {
+    const ep = getHoleEllipseParams();
+    holePanel.style.height = ep.H + 'px';
+    svg.setAttribute('viewBox', `0 0 ${ep.W} ${ep.H}`);
+
+    const nextW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--next-btn-w')) || 132;
+    const nextH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--next-btn-h')) || 64;
+    const nextFont = Math.max(20, Math.round(nextH * 0.42));
+    const nextX = ep.cx;
+    const nextY = ep.cy;
+    const nextRx = nextW / 2;
+    const nextRy = nextH / 2;
+
+    svg.innerHTML = `
+      <ellipse class="holeMoveTrack" cx="${ep.cx}" cy="${ep.cy}" rx="${ep.rx}" ry="${ep.ry}"></ellipse>
+      ${renderSegmentHoleButtons(ep)}
+      <g class="nextSvgGroup" onclick="goNextHole()" tabindex="0" role="button" aria-label="次のホールへ">
+        <rect class="nextSvgBtn" x="${(nextX - nextRx).toFixed(2)}" y="${(nextY - nextRy).toFixed(2)}" width="${nextW}" height="${nextH}" rx="${nextRy}" ry="${nextRy}"></rect>
+        <text class="nextSvgText" x="${nextX}" y="${nextY}" font-size="${nextFont}">NEXT</text>
+      </g>
+    `;
+  };
+
+  applyLayout();
+  requestAnimationFrame(applyLayout);
+}
+
+
+function ensureControlState(key){
+  if(!controlStateMap[key]){
+    controlStateMap[key] = { armed:false, enabled:false, pressTimer:null, activateTimer:null, lockTimer:null, suppressClickUntil:0 };
+  }
+  return controlStateMap[key];
+}
+
+function clearControlTimer(state, name){
+  if(state[name]){
+    clearTimeout(state[name]);
+    state[name] = null;
+  }
+}
+
+function clearProtectedPressTimer(key){
+  clearControlTimer(ensureControlState(key), "pressTimer");
+}
+
+function clearProtectedActivationTimer(key){
+  clearControlTimer(ensureControlState(key), "activateTimer");
+}
+
+function clearProtectedLockTimer(key){
+  clearControlTimer(ensureControlState(key), "lockTimer");
+}
+
+function getDiagStateMeta(p, type){
+  const required = isDiagValueUnset(p, type);
+  const enabled = isDiagEditEnabled(p, type);
+  const armed = isProtectedControlArmed(diagControlKey(p, type));
+  return {
+    required,
+    enabled,
+    armed,
+    stateClass: required ? "required" : (enabled ? "unlocked" : (armed ? "armed" : "locked")),
+    title: required ? "未入力です。入力してください" : (enabled ? "変更が有効です" : (armed ? "離すと変更を有効化します" : "長押しで変更"))
+  };
+}
+
+function applyDiagEditVisuals(){
+  document.querySelectorAll(".diagBtn[data-control-key]").forEach(el => {
+    const p = Number(el.dataset.player);
+    const type = el.dataset.type;
+    const meta = getDiagStateMeta(p, type);
+    el.classList.remove("required", "locked", "armed", "unlocked");
+    el.classList.add(meta.stateClass);
+    el.setAttribute("aria-disabled", meta.enabled ? "false" : "true");
+    el.setAttribute("title", meta.title);
+  });
+}
+
+function refreshProtectedControlsVisual(){
+  applyParEditVisual();
+  applyDiagEditVisuals();
+  applySettingsTestVisual();
+}
+
+function resetProtectedControl(key){
+  const state = ensureControlState(key);
+  state.armed = false;
+  state.enabled = false;
+  state.suppressClickUntil = 0;
+  clearProtectedPressTimer(key);
+  clearProtectedActivationTimer(key);
+  clearProtectedLockTimer(key);
+}
+
+function isProtectedControlEnabled(key, isUnset){
+  const state = ensureControlState(key);
+  return !!isUnset || !!state.enabled;
+}
+
+function isProtectedControlArmed(key){
+  return !!ensureControlState(key).armed;
+}
+
+function isProtectedClickSuppressed(key){
+  return Date.now() < (ensureControlState(key).suppressClickUntil || 0);
+}
+
+function scheduleProtectedRelock(key, isUnset){
+  const state = ensureControlState(key);
+  clearProtectedLockTimer(key);
+  if(isUnset){
+    state.enabled = true;
+    state.armed = false;
+    state.suppressClickUntil = 0;
+    refreshProtectedControlsVisual();
+    return;
+  }
+  state.lockTimer = setTimeout(() => {
+    resetProtectedControl(key);
+    refreshProtectedControlsVisual();
+  }, timingSettings.relockMs);
+}
+
+function unlockProtectedControl(key, isUnset){
+  const state = ensureControlState(key);
+  state.enabled = true;
+  state.armed = false;
+  scheduleProtectedRelock(key, isUnset);
+  refreshProtectedControlsVisual();
+  showToast("変更を有効化しました");
+}
+
+function beginProtectedPress(event, key, isUnset){
+  const state = ensureControlState(key);
+  clearProtectedPressTimer(key);
+  clearProtectedActivationTimer(key);
+  if(event && event.currentTarget && event.pointerId != null && event.currentTarget.setPointerCapture){
+    try{ event.currentTarget.setPointerCapture(event.pointerId); }catch(_e){}
+  }
+  if(isUnset){
+    state.enabled = true;
+    state.armed = false;
+    state.suppressClickUntil = 0;
+    return;
+  }
+  if(state.enabled) return;
+  state.armed = false;
+  state.suppressClickUntil = 0;
+  state.pressTimer = setTimeout(() => {
+    state.pressTimer = null;
+    state.armed = true;
+    refreshProtectedControlsVisual();
+    if (navigator.vibrate) navigator.vibrate(20);
+  }, timingSettings.holdMs);
+}
+
+function endProtectedPress(event, key, isUnset){
+  const state = ensureControlState(key);
+  clearProtectedPressTimer(key);
+  if(event && event.currentTarget && event.pointerId != null && event.currentTarget.releasePointerCapture){
+    try{
+      if(event.currentTarget.hasPointerCapture && event.currentTarget.hasPointerCapture(event.pointerId)){
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }catch(_e){}
+  }
+  if(!state.enabled && state.armed){
+    clearProtectedActivationTimer(key);
+    state.suppressClickUntil = Date.now() + timingSettings.activateDelayMs + 80;
+    state.activateTimer = setTimeout(() => {
+      unlockProtectedControl(key, isUnset);
+    }, timingSettings.activateDelayMs);
+  }
+}
+
+function cancelProtectedPress(event, key){
+  const state = ensureControlState(key);
+  clearProtectedPressTimer(key);
+  clearProtectedActivationTimer(key);
+  if(event && event.currentTarget && event.pointerId != null && event.currentTarget.releasePointerCapture){
+    try{
+      if(event.currentTarget.hasPointerCapture && event.currentTarget.hasPointerCapture(event.pointerId)){
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }catch(_e){}
+  }
+  if(state.armed || state.enabled){
+    state.armed = false;
+    state.enabled = false;
+    state.suppressClickUntil = 0;
+    refreshProtectedControlsVisual();
+  }
+}
+
+function getParControlKey(){
+  return `${currentHole}:par`;
+}
+
+function isParEditEnabled(){
+  return isProtectedControlEnabled(getParControlKey(), isCurrentHoleParUnset());
+}
+
+function clearParPressTimer(){
+  clearProtectedPressTimer(getParControlKey());
+}
+
+function clearParActivationTimer(){
+  clearProtectedActivationTimer(getParControlKey());
+}
+
+function clearParLockTimer(){
+  clearProtectedLockTimer(getParControlKey());
+}
+
+function isCurrentHoleParUnset(){
+  const hole = data && data[currentHole];
+  return !isValidPar(hole?.par);
+}
+
+function applyParEditVisual(){
+  const el = document.querySelector('.parDiag');
+  if(!el) return;
+
+  const required = isCurrentHoleParUnset();
+  const enabled = isParEditEnabled();
+  const armed = isProtectedControlArmed(getParControlKey());
+  if(required){
+    el.classList.remove('locked', 'unlocked', 'armed');
+    el.classList.add('required');
+    el.setAttribute('aria-disabled', 'false');
+    el.title = 'Par未入力です。入力してください';
+    return;
+  }
+
+  el.classList.remove('required');
+  if(enabled){
+    el.classList.remove('locked', 'armed');
+    el.classList.add('unlocked');
+    el.setAttribute('aria-disabled', 'false');
+    el.title = 'Par変更が有効です';
+  }else if(armed){
+    el.classList.remove('locked', 'unlocked');
+    el.classList.add('armed');
+    el.setAttribute('aria-disabled', 'true');
+    el.title = '離すと変更を有効化します';
+  }else{
+    el.classList.remove('unlocked', 'armed');
+    el.classList.add('locked');
+    el.setAttribute('aria-disabled', 'true');
+    el.title = '長押しで変更';
+  }
+}
+
+function lockParEdit(){
+  resetProtectedControl(getParControlKey());
+  applyParEditVisual();
+}
+
+function scheduleParRelock(){
+  scheduleProtectedRelock(getParControlKey(), isCurrentHoleParUnset());
+  applyParEditVisual();
+}
+
+function unlockParEdit(){
+  unlockProtectedControl(getParControlKey(), isCurrentHoleParUnset());
+}
+
+function beginParPress(event){
+  beginProtectedPress(event, getParControlKey(), isCurrentHoleParUnset());
+}
+
+function endParPress(event){
+  endProtectedPress(event, getParControlKey(), isCurrentHoleParUnset());
+}
+
+function cancelParPress(event){
+  cancelProtectedPress(event, getParControlKey());
+}
+
+function renderTopBlock(){
+  const holeText = currentHoleCourseLabel(currentHole);
+  const parText = displayParValue(data[currentHole]);
+
+  let html = `
+    <div class="topGrid">
+      <div class="leftPanel">
+        <div class="holeInfo">
+          <div class="holeLabel">${holeText}</div>
+        </div>
+
+        <div class="parPanel">
+          <div class="parTitle">Par</div>
+          <div class="parValue">${escapeHtml(parText)}</div>
+          <div class="parDiag ${isCurrentHoleParUnset() ? "required" : (isParEditEnabled() ? "unlocked" : (isProtectedControlArmed(getParControlKey()) ? "armed" : "locked"))}"
+               data-control-key="${getParControlKey()}"
+               onclick="diagClickPar(event)"
+               onpointerdown="beginParPress(event)"
+               onpointerup="endParPress(event)"
+               onpointercancel="cancelParPress(event)"
+               aria-disabled="${isParEditEnabled() ? "false" : "true"}"
+               title="${isCurrentHoleParUnset() ? "Par未入力です。入力してください" : (isParEditEnabled() ? "Par変更が有効です" : (isProtectedControlArmed(getParControlKey()) ? "離すと変更を有効化します" : "長押しで変更"))}">
+            <div class="parDiagPlus">+</div>
+            <div class="parDiagMinus">−</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="holePanel">
+        <svg class="holeMoveSvg" id="holeMoveSvg" viewBox="0 0 430 220" preserveAspectRatio="xMidYMid meet" aria-label="ホール移動"></svg>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("topBlock").innerHTML = html;
+  syncHoleMoveLayout();
+}
+
+function renderSegmentHoleButtons(ep){
+  const segmentBase = currentHole < 9 ? 0 : 9;
+  const isBackSegment = segmentBase === 9;
+  const points = equalChordPoints(ep, 9, -Math.PI / 2);
+
+  function computeMinDistance(pts){
+    let minD = Infinity;
+    for(let i=0;i<pts.length;i++){
+      const a = pts[i];
+      const b = pts[(i + 1) % pts.length];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if(d < minD) minD = d;
+    }
+    return minD;
+  }
+
+  const baseBtnSize = ep.btnSize || (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hole-btn-size')) || 52);
+  const minDist = computeMinDistance(points);
+
+  // 半径 <= 隣接中心距離の1/3 → 直径 <= 2/3
+  const btnSize = Math.min(baseBtnSize, minDist * (2/3) * 0.92);
+  const r = btnSize / 2;
+  const fontSize = Math.max(18, Math.round(btnSize * 0.46));
+  const subFontSize = Math.max(9, Math.round(btnSize * 0.24));
+
+  let svg = "";
+  for(let i=0; i<9; i++){
+    const holeIndex = segmentBase + i;
+    const isCurrent = holeIndex === currentHole;
+    const circleCls = isCurrent ? "holeSvgBtnCircle current" : "holeSvgBtnCircle";
+    const textCls = isCurrent ? "holeSvgBtnText current" : "holeSvgBtnText";
+    const subTextCls = isCurrent ? "holeSvgBtnSubText current" : "holeSvgBtnSubText";
+    const point = points[i];
+    const x = point.x;
+    const y = point.y;
+    const vx = ep.cx - x;
+    const vy = ep.cy - y;
+    const len = Math.hypot(vx, vy) || 1;
+    const ux = vx / len;
+    const uy = vy / len;
+    const mainX = isBackSegment ? (x - ux * r * 0.16) : x;
+    const mainY = isBackSegment ? (y - uy * r * 0.16) : y;
+    const subX = x + ux * r * 0.48;
+    const subY = y + uy * r * 0.48;
+    const ariaLabel = isBackSegment ? `${i+1}番ホール / 通し番号${holeIndex+1}` : `${i+1}番ホール`;
+    svg += `<g class="holeSvgBtn" onclick="goHole(${holeIndex})" tabindex="0" role="button" aria-label="${ariaLabel}">`
+        + `<circle class="${circleCls}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${r.toFixed(2)}"></circle>`
+        + `<text class="${textCls}" x="${mainX.toFixed(2)}" y="${mainY.toFixed(2)}" font-size="${fontSize}">${i+1}</text>`;
+    if(isBackSegment){
+      svg += `<text class="${subTextCls}" x="${subX.toFixed(2)}" y="${subY.toFixed(2)}" font-size="${subFontSize}">${holeIndex+1}</text>`;
+    }
+    svg += `</g>`;
+  }
+  return svg;
+}
+
+function formatSigned(n){
+  if(n > 0) return "+" + n;
+  if(n === 0) return "0";
+  return String(n);
+}
+
+function scoreDisplayText(scoreValue, parValue){
+  if(!isEnteredScore(scoreValue)) return "";
+  if(scoreMode === "abs" || !isValidPar(parValue)) return String(scoreValue);
+  return formatSigned(scoreValue - parValue);
+}
+
+function displayScoreValue(holeIndex, playerIndex){
+  const hole = data[holeIndex];
+  const player = hole?.players?.[playerIndex];
+  return scoreDisplayText(player?.score, hole?.par);
+}
+
+function displayMetricValue(holeIndex, playerIndex, type){
+  const value = data[holeIndex]?.players?.[playerIndex]?.[type];
+  return isEnteredCount(value) ? String(value) : "";
+}
+
+
+function diagControlKey(p, type){
+  return `${currentHole}:${p}:${type}`;
+}
+
+function isDiagValueUnset(p, type){
+  const hole = data[currentHole];
+  const player = hole?.players?.[p];
+  if(type === "score") return !isEnteredScore(player?.score);
+  return !isEnteredCount(player?.[type]);
+}
+
+function isDiagEditEnabled(p, type){
+  return isProtectedControlEnabled(diagControlKey(p, type), isDiagValueUnset(p, type));
+}
+
+function lockDiagEdit(p, type){
+  resetProtectedControl(diagControlKey(p, type));
+  renderHole();
+}
+
+function scheduleDiagRelock(p, type){
+  scheduleProtectedRelock(diagControlKey(p, type), isDiagValueUnset(p, type));
+}
+
+function unlockDiagEdit(p, type){
+  unlockProtectedControl(diagControlKey(p, type), isDiagValueUnset(p, type));
+}
+
+function beginDiagPress(event, p, type){
+  beginProtectedPress(event, diagControlKey(p, type), isDiagValueUnset(p, type));
+}
+
+function endDiagPress(event, p, type){
+  endProtectedPress(event, diagControlKey(p, type), isDiagValueUnset(p, type));
+}
+
+function cancelDiagPress(event, p, type){
+  cancelProtectedPress(event, diagControlKey(p, type));
+}
+
+function metricMiniHtml(label, p, type, valueText){
+  const required = isDiagValueUnset(p, type);
+  const enabled = isDiagEditEnabled(p, type);
+  const armed = isProtectedControlArmed(diagControlKey(p, type));
+  const stateClass = required ? "required" : (enabled ? "unlocked" : (armed ? "armed" : "locked"));
+  const title = required ? "未入力です。入力してください" : (enabled ? "変更が有効です" : (armed ? "離すと変更を有効化します" : "長押しで変更"));
+  return `
+    <div class="metricMini">
+      <div class="metricMiniLabel">${escapeHtml(label)}</div>
+      <div class="controlMini">
+        <div class="valueText">${escapeHtml(valueText)}</div>
+        <div class="diagBtn ${stateClass}"
+             data-control-key="${diagControlKey(p, type)}"
+             data-player="${p}"
+             data-type="${type}"
+             onclick="diagClick(event, ${p}, '${type}')"
+             onpointerdown="beginDiagPress(event, ${p}, '${type}')"
+             onpointerup="endDiagPress(event, ${p}, '${type}')"
+             onpointercancel="cancelDiagPress(event, ${p}, '${type}')"
+             aria-disabled="${enabled ? "false" : "true"}"
+             title="${title}">
+          <div class="diagPlus">+</div>
+          <div class="diagMinus">−</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function diagClick(event, p, type){
+  const key = diagControlKey(p, type);
+  if(isProtectedClickSuppressed(key)) return;
+  if(!isDiagEditEnabled(p, type)){
+    showToast("長押しで変更を有効化");
+    return;
+  }
+
+  const touch = event.changedTouches && event.changedTouches[0];
+  const clientX = touch ? touch.clientX : event.clientX;
+  const clientY = touch ? touch.clientY : event.clientY;
+  const r = event.currentTarget.getBoundingClientRect();
+  const x = clientX - r.left;
+  const y = clientY - r.top;
+  if(y < x){
+    chg(p, type, 1);
+  }else{
+    chg(p, type, -1);
+  }
+}
+
+function diagClickPar(event){
+  const key = getParControlKey();
+  if(isProtectedClickSuppressed(key)) return;
+  if(!isParEditEnabled() && !isCurrentHoleParUnset()){
+    showToast("長押しでPar変更を有効化");
+    return;
+  }
+
+  const touch = event.changedTouches && event.changedTouches[0];
+  const clientX = touch ? touch.clientX : event.clientX;
+  const clientY = touch ? touch.clientY : event.clientY;
+
+  const r = event.currentTarget.getBoundingClientRect();
+  const x = clientX - r.left;
+  const y = clientY - r.top;
+  if(y < x){
+    chgPar(1);
+  }else{
+    chgPar(-1);
+  }
+}
+
+function renderHole(){
+  renderTopBlock();
+  if(isCurrentHoleParUnset()){
+    ensureControlState(getParControlKey()).enabled = true;
+  }
+  applyParEditVisual();
+  applyDiagEditVisuals();
+  if(isParEditEnabled() || isCurrentHoleParUnset()){
+    scheduleParRelock();
+  }
+
+  const h = currentHole;
+  let html = "";
+
+  for(let p=0; p<players; p++){
+    html += "<div class='playerCard'>";
+    html += "<div class='playerName'>" + escapeHtml(playerNames[p]) + "</div>";
+    html += "<div class='playerCompactRow'>";
+    html += metricMiniHtml("Score", p, "score", displayScoreValue(h, p));
+    html += metricMiniHtml("Putt", p, "putt", displayMetricValue(h, p, "putt"));
+    html += metricMiniHtml("Olympic", p, "olympic", displayMetricValue(h, p, "olympic"));
+    html += "</div>";
+    html += "</div>";
+  }
+
+  document.getElementById("inputArea").innerHTML = html;
+  showSummary();
+  updateScoreModeToggle();
+}
+
+function medianLower(values){
+  const arr = values.filter(Number.isFinite).slice().sort((a,b) => a - b);
+  if(!arr.length) return UNSET;
+  return arr[Math.floor((arr.length - 1) / 2)];
+}
+
+function getEnteredValuesForPlayer(playerIndex, type){
+  const values = [];
+  for(let h=0; h<18; h++){
+    if(h === currentHole) continue;
+    const hole = data[h];
+    const player = hole?.players?.[playerIndex];
+    const value = player?.[type];
+    if(type === 'score'){
+      if(isEnteredScore(value)) values.push(value);
+    }else if(isEnteredCount(value)){
+      values.push(value);
+    }
+  }
+  return values;
+}
+
+function getEnteredScoreDiffsForPlayer(playerIndex){
+  const values = [];
+  for(let h=0; h<18; h++){
+    if(h === currentHole) continue;
+    const hole = data[h];
+    const player = hole?.players?.[playerIndex];
+    if(isEnteredScore(player?.score) && isValidPar(hole?.par)){
+      values.push(player.score - hole.par);
+    }
+  }
+  return values;
+}
+
+function getPredictedScore(playerIndex){
+  const currentPar = data[currentHole]?.par;
+  if(!isValidPar(currentPar)) return 4;
+  const diffs = getEnteredScoreDiffsForPlayer(playerIndex);
+  if(diffs.length >= 3){
+    const medDiff = medianLower(diffs);
+    if(Number.isFinite(medDiff)){
+      return Math.max(1, currentPar + medDiff);
+    }
+  }
+  return currentPar;
+}
+
+function getPredictedPutt(playerIndex){
+  const values = getEnteredValuesForPlayer(playerIndex, 'putt');
+  if(values.length >= 3){
+    const med = medianLower(values);
+    if(isEnteredCount(med)) return med;
+  }
+  return 2;
+}
+
+function chg(p, type, delta){
+  if(!isDiagEditEnabled(p, type)){
+    showToast("長押しで変更を有効化");
+    return;
+  }
+
+  const hole = data[currentHole];
+  const player = hole.players[p];
+
+  if(type === "score"){
+    if(!isValidPar(hole.par)){
+      showToast("先にParを入力してください");
+      return;
+    }
+    if(!isEnteredScore(player.score)){
+      player.score = getPredictedScore(p);
+    }else{
+      player.score += delta;
+      if(player.score < 1) player.score = 1;
+    }
+  }else if(type === "putt"){
+    if(!isEnteredCount(player.putt)){
+      player.putt = getPredictedPutt(p);
+    }else{
+      player.putt += delta;
+      if(player.putt < 0) player.putt = 0;
+    }
+  }else{
+    if(!isEnteredCount(player[type])){
+      player[type] = 0;
+    }else{
+      player[type] += delta;
+      if(player[type] < 0) player[type] = 0;
+    }
+  }
+
+  renderHole();
+  saveCurrentRound();
+  scheduleDiagRelock(p, type);
+}
+
+function chgPar(delta){
+  if(!isParEditEnabled() && !isCurrentHoleParUnset()){
+    showToast("長押しでPar変更を有効化");
+    return;
+  }
+
+  const hole = data[currentHole];
+  let val = hole.par;
+
+  if(!isValidPar(val)){
+    val = 4;
+  }else{
+    val += delta;
+    if(val < 3) val = 3;
+    if(val > 6) val = 6;
+  }
+
+  hole.par = val;
+  renderHole();
+  saveCurrentRound();
+  scheduleParRelock();
+}
+
+function goHole(index){
+  if(index < 0 || index > 17) return;
+  currentHole = index;
+  renderHole();
+  saveCurrentRound();
+}
+
+function goNextHole(){
+  currentHole = (currentHole + 1) % 18;
+  renderHole();
+  saveCurrentRound();
+}
+
+function blankIfZeroCount(value, count){
+  return count > 0 ? String(value) : "";
+}
+
+function getSummarySegmentLabels(){
+  const names = getCourseSegmentNames(currentStateObject());
+  return {
+    first: names.front || "OUT",
+    second: names.back || "IN"
+  };
+}
+
+function buildSummaryData(){
+  let totalPar = 0, outPar = 0, inPar = 0;
+  let totalParCount = 0, outParCount = 0, inParCount = 0;
+
+  let outScore = Array(players).fill(0);
+  let inScore = Array(players).fill(0);
+  let totalScore = Array(players).fill(0);
+
+  let outScorePar = Array(players).fill(0);
+  let inScorePar = Array(players).fill(0);
+  let totalScorePar = Array(players).fill(0);
+
+  let outScoreCount = Array(players).fill(0);
+  let inScoreCount = Array(players).fill(0);
+  let totalScoreCount = Array(players).fill(0);
+
+  let totalPutt = Array(players).fill(0);
+  let totalOlympic = Array(players).fill(0);
+  let totalPuttCount = Array(players).fill(0);
+  let totalOlympicCount = Array(players).fill(0);
+
+  const holeRows = [];
+
+  for(let h=0; h<18; h++){
+    const hole = data[h];
+    const par = hole.par;
+    const parEntered = isValidPar(par);
+    const hasPlayData = holeHasAnyPlayData(hole);
+
+    if(parEntered){
+      totalPar += par;
+      totalParCount += 1;
+      if(h < 9){
+        outPar += par;
+        outParCount += 1;
+      }else{
+        inPar += par;
+        inParCount += 1;
+      }
+    }
+
+    const cells = [];
+    for(let p=0; p<players; p++){
+      const player = hole.players[p];
+      const scoreEntered = isEnteredScore(player.score);
+      const puttEntered = isEnteredCount(player.putt);
+      const olyEntered = isEnteredCount(player.olympic);
+
+      if(scoreEntered){
+        totalScore[p] += player.score;
+        totalScoreCount[p] += 1;
+        if(parEntered) totalScorePar[p] += par;
+        if(h < 9){
+          outScore[p] += player.score;
+          outScoreCount[p] += 1;
+          if(parEntered) outScorePar[p] += par;
+        }else{
+          inScore[p] += player.score;
+          inScoreCount[p] += 1;
+          if(parEntered) inScorePar[p] += par;
+        }
+      }
+
+      if(puttEntered){
+        totalPutt[p] += player.putt;
+        totalPuttCount[p] += 1;
+      }
+
+      if(olyEntered){
+        totalOlympic[p] += player.olympic;
+        totalOlympicCount[p] += 1;
+      }
+
+      cells.push({
+        score: player.score,
+        putt: player.putt,
+        oly: player.olympic,
+        scoreEntered,
+        puttEntered,
+        olyEntered,
+        par
+      });
+    }
+
+    holeRows.push({
+      hole: h + 1,
+      label: currentHoleCourseLabel(h),
+      hasPlayData,
+      par,
+      parEntered,
+      cells
+    });
+  }
+
+  return {
+    totalPar, outPar, inPar,
+    totalParCount, outParCount, inParCount,
+    outScore, inScore, totalScore,
+    outScorePar, inScorePar, totalScorePar,
+    outScoreCount, inScoreCount, totalScoreCount,
+    totalPutt, totalOlympic,
+    totalPuttCount, totalOlympicCount,
+    holeRows
+  };
+}
+
+function scoreCellText(cell){
+  return scoreDisplayText(cell.score, cell.par);
+}
+
+function subtotalDisplay(absTotal, parTotal, count){
+  if(!count) return "";
+  return String(absTotal);
+}
+
+function metricSubline(cell){
+  const puttText = cell.puttEntered ? String(cell.putt) : "";
+  const olyText = cell.olyEntered ? String(cell.oly) : "";
+  return { puttText, olyText };
+}
+
+function metricSublinePlain(cell){
+  const puttText = cell.puttEntered ? String(cell.putt) : "";
+  const olyText = cell.olyEntered ? String(cell.oly) : "";
+  return { puttText, olyText };
+}
+
+function buildSummaryExportRows(summaryData){
+  const rows = [];
+  const segmentLabels = getSummarySegmentLabels();
+  rows.push({ type:"header", label:"H", par:"Par", cells: playerNames.slice(0, players) });
+
+  for(const row of summaryData.holeRows){
+    rows.push({
+      type:"hole",
+      label: row.label,
+      par: row.parEntered ? String(row.par) : "",
+      current: row.hole - 1 === currentHole,
+      unentered: !row.hasPlayData,
+      cells: row.cells.map(c => {
+        const metrics = metricSublinePlain(c);
+        return {
+          main: c.scoreEntered ? scoreCellText(c) : "",
+          putt: metrics.puttText,
+          oly: metrics.olyText
+        };
+      })
+    });
+
+    if(row.hole === 9){
+      rows.push({
+        type:"sub",
+        label: segmentLabels.first,
+        par: blankIfZeroCount(summaryData.outPar, summaryData.outParCount),
+        cells: Array.from({length:players}, (_, p) => subtotalDisplay(summaryData.outScore[p], summaryData.outScorePar[p], summaryData.outScoreCount[p]))
+      });
+    }
+  }
+
+  rows.push({
+    type:"sub",
+    label: segmentLabels.second,
+    par: blankIfZeroCount(summaryData.inPar, summaryData.inParCount),
+    cells: Array.from({length:players}, (_, p) => subtotalDisplay(summaryData.inScore[p], summaryData.inScorePar[p], summaryData.inScoreCount[p]))
+  });
+  rows.push({
+    type:"total",
+    label:"TOTAL",
+    par: blankIfZeroCount(summaryData.totalPar, summaryData.totalParCount),
+    cells: Array.from({length:players}, (_, p) => subtotalDisplay(summaryData.totalScore[p], summaryData.totalScorePar[p], summaryData.totalScoreCount[p]))
+  });
+  rows.push({
+    type:"sub",
+    label:"PUTT",
+    par:"-",
+    cells: Array.from({length:players}, (_, p) => blankIfZeroCount(summaryData.totalPutt[p], summaryData.totalPuttCount[p]))
+  });
+  rows.push({
+    type:"sub",
+    label:"OLYMPIC",
+    par:"-",
+    cells: Array.from({length:players}, (_, p) => blankIfZeroCount(summaryData.totalOlympic[p], summaryData.totalOlympicCount[p]))
+  });
+
+  return rows;
+}
+
+function makeSummaryExportCanvas(){
+  if(players < 1 || !Array.isArray(data) || data.length !== 18){
+    throw new Error("集計表にできるラウンドデータがありません");
+  }
+
+  const summaryData = buildSummaryData();
+  const rows = buildSummaryExportRows(summaryData);
+  const baseFont = 'system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif';
+  const measureCanvas = document.createElement("canvas");
+  const measureCtx = measureCanvas.getContext("2d");
+
+  const courseNameText = String(document.getElementById("courseName").value || "").trim();
+  const playDateText = String(document.getElementById("playDate").value || "").trim();
+  const titleText = courseNameText || "GolfScorePro";
+  const subtitleText = playDateText || "";
+
+  const paddingX = 14;
+  const firstColWidth = 78;
+  const parColWidth = 66;
+  const minPlayerColWidth = 98;
+  const maxPlayerColWidth = 180;
+  const outerPad = 16;
+  const headerGap = 10;
+  const titleHeight = titleText ? 32 : 0;
+  const subtitleHeight = subtitleText ? 22 : 0;
+  const headerBlockHeight = (titleHeight + subtitleHeight) ? (titleHeight + subtitleHeight + headerGap) : 0;
+
+  const borderColor = "#b8b8b8";
+  const headerBg = "#ececec";
+  const holeBg = "#ffffff";
+  const currentBg = "#f3efe5";
+  const currentFirstBg = "#e4dccb";
+  const subBg = "#e6f1ff";
+  const totalBg = "#d5e6ff";
+  const unenteredText = "#6f6f6f";
+
+  const playerColWidths = [];
+  for(let p=0; p<players; p++){
+    let width = minPlayerColWidth;
+    measureCtx.font = `700 20px ${baseFont}`;
+    width = Math.max(width, Math.ceil(measureCtx.measureText(String(playerNames[p] || "")).width) + paddingX * 2);
+
+    for(const row of rows){
+      if(row.type === "hole"){
+        const cell = row.cells[p] || { main:"", putt:"", oly:"" };
+        measureCtx.font = `700 21px ${baseFont}`;
+        width = Math.max(width, Math.ceil(measureCtx.measureText(String(cell.main || " ")).width) + paddingX * 2);
+        measureCtx.font = `400 12px ${baseFont}`;
+        width = Math.max(width, Math.ceil(measureCtx.measureText(String(cell.putt || " ")).width) + paddingX + 12);
+        width = Math.max(width, Math.ceil(measureCtx.measureText(String(cell.oly || " ")).width) + paddingX + 12);
+      }else if(Array.isArray(row.cells)){
+        measureCtx.font = `700 19px ${baseFont}`;
+        width = Math.max(width, Math.ceil(measureCtx.measureText(String(row.cells[p] || " ")).width) + paddingX * 2);
+      }
+    }
+    playerColWidths.push(clamp(width, minPlayerColWidth, maxPlayerColWidth));
+  }
+
+  const colWidths = [firstColWidth, parColWidth].concat(playerColWidths);
+  const tableWidth = colWidths.reduce((a,b) => a + b, 0);
+  const rowHeights = rows.map(row => row.type === "hole" ? 52 : 38);
+  const tableHeight = rowHeights.reduce((a,b) => a + b, 0);
+  const contentWidth = tableWidth + outerPad * 2;
+  const contentHeight = tableHeight + outerPad * 2 + headerBlockHeight;
+  const scale = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(contentWidth * scale);
+  canvas.height = Math.round(contentHeight * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, contentWidth, contentHeight);
+  ctx.textBaseline = "middle";
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 1;
+
+  function cellRect(colIndex, y, height){
+    const x = outerPad + colWidths.slice(0, colIndex).reduce((a,b) => a+b, 0);
+    return { x, y, width: colWidths[colIndex], height };
+  }
+
+  function drawCellBackground(rect, fill){
+    ctx.fillStyle = fill;
+    ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+  }
+
+  function drawCenteredText(text, rect, font, color, offsetY=0, offsetX=0){
+    ctx.font = font;
+    ctx.fillStyle = color;
+    ctx.fillText(String(text || ""), rect.x + rect.width / 2 - ctx.measureText(String(text || "")).width / 2 + offsetX, rect.y + rect.height / 2 + offsetY);
+  }
+
+  function drawRightText(text, x, y, font, color){
+    ctx.font = font;
+    ctx.fillStyle = color;
+    const s = String(text || "");
+    ctx.fillText(s, x - ctx.measureText(s).width, y);
+  }
+
+  function drawLeftText(text, x, y, font, color){
+    ctx.font = font;
+    ctx.fillStyle = color;
+    ctx.fillText(String(text || ""), x, y);
+  }
+
+  let y = outerPad;
+  if(titleText){
+    ctx.font = `700 26px ${baseFont}`;
+    ctx.fillStyle = "#111111";
+    ctx.textBaseline = "top";
+    ctx.fillText(titleText, outerPad, y);
+    y += titleHeight;
+  }
+  if(subtitleText){
+    ctx.font = `500 17px ${baseFont}`;
+    ctx.fillStyle = "#444444";
+    ctx.textBaseline = "top";
+    ctx.fillText(subtitleText, outerPad, y);
+    y += subtitleHeight;
+  }
+  if(headerBlockHeight){
+    y += headerGap;
+  }
+  ctx.textBaseline = "middle";
+
+  rows.forEach((row, rowIndex) => {
+    const h = rowHeights[rowIndex];
+    let defaultBg = holeBg;
+    if(row.type === "header") defaultBg = headerBg;
+    else if(row.type === "sub") defaultBg = subBg;
+    else if(row.type === "total") defaultBg = totalBg;
+    else if(row.current) defaultBg = currentBg;
+
+    const values = [row.label, row.par].concat(row.cells);
+    for(let c=0; c<values.length; c++){
+      const rect = cellRect(c, y, h);
+      let bg = defaultBg;
+      if(row.type === "hole" && row.current && c === 0) bg = currentFirstBg;
+      drawCellBackground(rect, bg);
+
+      if(row.type === "hole" && c >= 2){
+        const cell = row.cells[c - 2] || { main:"", putt:"", oly:"" };
+        const color = row.unentered ? unenteredText : "#111111";
+        drawCenteredText(cell.main || "", rect, `700 21px ${baseFont}`, color, 0, 0);
+        drawRightText(cell.oly || "", rect.x + rect.width - 6, rect.y + 18, `400 18px ${baseFont}`, color);
+        drawRightText(cell.putt || "", rect.x + rect.width - 6, rect.y + rect.height - 8, `400 18px ${baseFont}`, color);
+      }else{
+        const text = c === 0 ? row.label : (c === 1 ? row.par : row.cells[c - 2]);
+        const font = row.type === "header" ? `700 17px ${baseFont}` : `700 19px ${baseFont}`;
+        const color = row.type === "hole" && row.unentered ? unenteredText : "#111111";
+        drawCenteredText(text || "", rect, font, color, 0);
+      }
+    }
+    y += h;
+  });
+
+  return canvas;
+}
+
+function canvasToBlobAsync(canvas, type, quality){
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if(blob) resolve(blob);
+      else reject(new Error("画像変換に失敗しました"));
+    }, type, quality);
+  });
+}
+
+function downloadBlobFile(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function copySummaryTableToClipboard(){
+  try{
+    const canvas = makeSummaryExportCanvas();
+
+    if(navigator.clipboard && window.ClipboardItem){
+      try{
+        const item = new ClipboardItem({
+          "image/png": new Promise((resolve, reject) => {
+            canvas.toBlob(blob => {
+              if(blob) resolve(blob);
+              else reject(new Error("PNG変換に失敗しました"));
+            }, "image/png");
+          })
+        });
+        await navigator.clipboard.write([item]);
+        updateStatus("コース名・日付付き集計表PNGをコピーバッファに取り込みました");
+        showToast("集計表PNGをコピーしました");
+        return;
+      }catch(pngError){
+        try{
+          const pngBlob = await canvasToBlobAsync(canvas, "image/png");
+          downloadBlobFile(pngBlob, "GolfScorePro_summary.png");
+          updateStatus("画像クリップボード非対応のため、PNGファイルを保存しました");
+          alert("このブラウザでは画像のクリップボード書き込みに対応していないため、PNGファイルとして保存しました");
+          return;
+        }catch(saveError){
+          throw saveError;
+        }
+      }
+    }
+
+    const pngBlob = await canvasToBlobAsync(canvas, "image/png");
+    downloadBlobFile(pngBlob, "GolfScorePro_summary.png");
+    updateStatus("画像クリップボード非対応のため、PNGファイルを保存しました");
+    alert("このブラウザでは画像のクリップボード書き込みに対応していないため、PNGファイルとして保存しました");
+  }catch(err){
+    console.error(err);
+    updateStatus("集計表画像の作成に失敗しました");
+    alert("集計表画像の作成またはコピーに失敗しました");
+  }
+}
+
+function showSummary(){
+  const s = buildSummaryData();
+  const segmentLabels = getSummarySegmentLabels();
+
+  let html = "<div class='sectionCard'>";
+  html += "<h4>" + escapeHtml(document.getElementById("courseName").value) + " " +
+          escapeHtml(document.getElementById("playDate").value) + "</h4>";
+
+  html += "<table>";
+  html += "<tr><th>H</th><th>Par</th>";
+  for(let p=0; p<players; p++){
+    html += "<th>" + escapeHtml(playerNames[p]) + "</th>";
+  }
+  html += "</tr>";
+
+  for(const row of s.holeRows){
+    const rowClasses = [];
+    if(row.hole - 1 === currentHole) rowClasses.push("summaryCurrentRow");
+    if(!row.hasPlayData) rowClasses.push("summaryUnenteredRow");
+    const rowClass = rowClasses.length ? " class='" + rowClasses.join(" ") + "'" : "";
+    html += "<tr" + rowClass + "><td>" + escapeHtml(row.label) + "</td><td>" + (row.parEntered ? row.par : "") + "</td>";
+    for(const c of row.cells){
+      const scoreHtml = c.scoreEntered ? escapeHtml(scoreCellText(c)) : "&nbsp;";
+      const metrics = metricSubline(c);
+      html += "<td><div class='scoreCellWrap'><div class='scoreCellMain'>" + scoreHtml + "</div><div class='scoreCellCornerTop'>" + escapeHtml(metrics.olyText) + "</div><div class='scoreCellCornerBottom'>" + escapeHtml(metrics.puttText) + "</div></div></td>";
+    }
+    html += "</tr>";
+
+    if(row.hole === 9){
+      html += "<tr class='subRow'><td>" + escapeHtml(segmentLabels.first) + "</td><td>" + blankIfZeroCount(s.outPar, s.outParCount) + "</td>";
+      for(let p=0; p<players; p++){
+        html += "<td>" + subtotalDisplay(s.outScore[p], s.outScorePar[p], s.outScoreCount[p]) + "</td>";
+      }
+      html += "</tr>";
+    }
+  }
+
+  html += "<tr class='subRow'><td>" + escapeHtml(segmentLabels.second) + "</td><td>" + blankIfZeroCount(s.inPar, s.inParCount) + "</td>";
+  for(let p=0; p<players; p++){
+    html += "<td>" + subtotalDisplay(s.inScore[p], s.inScorePar[p], s.inScoreCount[p]) + "</td>";
+  }
+  html += "</tr>";
+
+  html += "<tr class='totalRow'><td>TOTAL</td><td>" + blankIfZeroCount(s.totalPar, s.totalParCount) + "</td>";
+  for(let p=0; p<players; p++){
+    html += "<td>" + subtotalDisplay(s.totalScore[p], s.totalScorePar[p], s.totalScoreCount[p]) + "</td>";
+  }
+  html += "</tr>";
+
+  html += "<tr class='subRow'><td>PUTT</td><td>-</td>";
+  for(let p=0; p<players; p++){
+    html += "<td>" + blankIfZeroCount(s.totalPutt[p], s.totalPuttCount[p]) + "</td>";
+  }
+  html += "</tr>";
+
+  html += "<tr class='subRow'><td>OLYMPIC</td><td>-</td>";
+  for(let p=0; p<players; p++){
+    html += "<td>" + blankIfZeroCount(s.totalOlympic[p], s.totalOlympicCount[p]) + "</td>";
+  }
+  html += "</tr>";
+
+  html += "</table>";
+  html += "</div>";
+
+  document.getElementById("summaryArea").innerHTML = html;
+  updateScoreModeToggle();
+}
+
+function saveToHistory(){
+  if(players < 1 || !Array.isArray(data) || data.length !== 18){
+    alert("保存できるラウンドデータがありません");
+    return;
+  }
+  const history = getHistory();
+  history.unshift(currentStateObject());
+  setHistory(history);
+  updateStatus("履歴に保存しました");
+  showToast("履歴に保存しました");
+}
+
+function showHistoryList(){
+  const historyArea = document.getElementById("historyArea");
+  const history = getHistory();
+
+  let html = "<div class='sectionCard'><h4>保存済み履歴</h4>";
+
+  if(history.length === 0){
+    html += "<div>保存済み履歴はありません</div></div>";
+    historyArea.innerHTML = html;
+    historyArea.classList.remove("hidden");
+    return;
+  }
+
+  html += "<table class='historyTable'>";
+  html += "<tr><th>No</th><th>コース</th><th>日付</th><th>プレイヤー</th><th>保存ホール</th><th>保存日時</th><th>操作</th></tr>";
+
+  history.forEach((item, index) => {
+    const course = escapeHtml(item.courseName || "未設定");
+    const playDate = escapeHtml(item.playDate || "未設定");
+    const members = escapeHtml(Array.isArray(item.playerNames) ? item.playerNames.join("・") : "");
+    const hole = Number.isInteger(item.currentHole) ? currentHoleCourseLabel(item.currentHole, item) : currentHoleCourseLabel(0, item);
+    const savedAt = item.savedAt ? escapeHtml(item.savedAt.replace("T"," ").slice(0,19)) : "";
+
+    html += "<tr>";
+    html += "<td>" + (index + 1) + "</td>";
+    html += "<td>" + course + "</td>";
+    html += "<td>" + playDate + "</td>";
+    html += "<td>" + members + "</td>";
+    html += "<td>" + hole + "</td>";
+    html += "<td>" + savedAt + "</td>";
+    html += "<td class='actionCell'>";
+    html += "<button class='small' onclick='loadHistoryItem(" + index + ")'>読込</button>";
+    html += "<button class='small' onclick='deleteHistoryItem(" + index + ")'>削除</button>";
+    html += "</td>";
+    html += "</tr>";
+  });
+
+  html += "</table></div>";
+
+  historyArea.innerHTML = html;
+  historyArea.classList.remove("hidden");
+}
+
+function loadHistoryItem(index){
+  const history = getHistory();
+  const item = history[index];
+  if(!item){
+    alert("履歴が見つかりません");
+    return;
+  }
+  loadStateObject(item);
+  updateStatus("履歴から読み込みました");
+  showToast("履歴を読み込みました");
+}
+
+function deleteHistoryItem(index){
+  const history = getHistory();
+  if(index < 0 || index >= history.length) return;
+  if(!confirm("この履歴を削除しますか？")) return;
+  history.splice(index, 1);
+  setHistory(history);
+  showHistoryList();
+  updateStatus("履歴を削除しました");
+  showToast("履歴を削除しました");
+}
+
+function resumeAutosave(){
+  const ok = loadCurrentRound();
+  if(!ok) alert("再開できる自動保存データがありません");
+}
+
+
+function swapFrontBackDuringPlay(){
+  if(players < 1 || !Array.isArray(data) || data.length !== 18){
+    alert("交換できるラウンドデータがありません");
+    return;
+  }
+  if(!confirm("前半と後半を、入力済みデータごと交換しますか？")) return;
+
+  const frontEl = document.getElementById("frontCourseName");
+  const backEl = document.getElementById("backCourseName");
+  if(frontEl && backEl){
+    const tmpName = frontEl.value;
+    frontEl.value = backEl.value;
+    backEl.value = tmpName;
+  }
+
+  data = data.slice(9).concat(data.slice(0, 9));
+  currentHole = Number.isInteger(currentHole) ? ((currentHole + 9) % 18) : 0;
+
+  const courseName = document.getElementById("courseName").value || "";
+  const playDate = document.getElementById("playDate").value || "";
+  document.getElementById("roundTitle").innerText = courseName + "  " + playDate;
+
+  renderHole();
+  saveCurrentRound();
+  updateStatus("前後半を入力済みデータごと交換しました");
+  showToast("前後半を交換しました");
+}
+
+function resetRound(){
+  if(!confirm("現在のラウンドデータを消して新規開始しますか？")) return;
+  clearCurrentRound();
+  location.reload();
+}
+
+function exportToFile(){
+  const state = currentStateObject();
+  const fileNameBase = (state.playDate || "date") + "_" + (state.courseName || "golf_score");
+  const safeFileName = fileNameBase.replace(/[\\/:*?"<>| ]/g, "_") + ".json";
+
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = safeFileName;
+  a.click();
+
+  URL.revokeObjectURL(url);
+  updateStatus("ファイル保存を開始しました");
+  showToast("ファイル保存を開始しました");
+}
+
+function loadFromFile(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const obj = JSON.parse(e.target.result);
+      const ok = loadStateObject(obj);
+      if(ok){
+        updateStatus("ファイルから復元しました");
+        showToast("ファイルから復元しました");
+      }
+    }catch(err){
+      console.error(err);
+      alert("読み込みエラー: 無効なJSONまたは非対応データです");
+    }finally{
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+function getSelectedNamesFromSetup(){
+  const result = [];
+  for(let i=0; i<players; i++){
+    const sel = document.getElementById("playerSel" + i);
+    if(!sel || !sel.value) continue;
+    if(sel.value === "ゲスト") result.push(sanitizeGuestName(guestCustomNames[i] || "") || "ゲスト");
+    else result.push(sel.value);
+  }
+  return result;
+}
+
+function getDraftRoundInfo(){
+  const courseName = document.getElementById("courseName").value.trim();
+  const playDate = document.getElementById("playDate").value;
+  const frontCourseName = document.getElementById("frontCourseName").value.trim();
+  const backCourseName = document.getElementById("backCourseName").value.trim();
+  const selectedNames = (Array.isArray(playerNames) && playerNames.length === players && players > 0)
+    ? playerNames.slice()
+    : getSelectedNamesFromSetup();
+  return {
+    courseName,
+    playDate,
+    frontCourseName,
+    backCourseName,
+    players,
+    playerNames: selectedNames
+  };
+}
+
+function validateDraftRoundInfo(info){
+  const errs = [];
+  if(!info.courseName) errs.push("・ゴルフ場名を入力してください");
+  if(!info.playDate) errs.push("・日付を入力してください");
+  if(!info.frontCourseName) errs.push("・前半コース名を入力してください");
+  if(!info.backCourseName) errs.push("・後半コース名を入力してください");
+  if(!Number.isInteger(info.players) || info.players < 1) errs.push("・プレイヤー人数を選択してください");
+  if(!Array.isArray(info.playerNames) || info.playerNames.length !== info.players) errs.push("・プレイヤー名を人数分選択してください");
+  const unique = new Set(info.playerNames);
+  if(unique.size !== info.playerNames.length) errs.push("・プレイヤー名が重複しています");
+  return errs;
+}
+
+function setParPrepStatus(message, ok=false){
+  const el = document.getElementById("parPrepStatus");
+  if(!el) return;
+  el.className = "parPrepStatus " + (ok ? "ok" : "ng");
+  el.textContent = message || "";
+}
+
+
+function buildParPrompt(info){
+  return `指定したゴルフ場の各ホールのParを調べてください。
+
+【対象】
+- ゴルフ場名: ${info.courseName}
+- 前半コース名: ${info.frontCourseName}
+- 後半コース名: ${info.backCourseName}
+
+⸻
+
+■ フェーズ1：ゴルフ場名の正規化（最重要）
+
+以下を必ず実行し、正式名称を確定してから次へ進むこと。
+
+① 名称候補生成
+以下のパターンをすべて試す：
+	•	元の名称
+	•	「ゴルフ」「ゴルフコース」「カントリークラブ」「GC」「CC」付加
+	•	語順入替
+	•	英語表記候補
+
+② 正式名称の確定条件
+以下のいずれかを満たす名称を採用：
+	•	楽天GORA掲載名
+	•	GDO掲載名
+	•	公式サイトのタイトル
+
+③ 正式名称を確定できない場合
+以下をそのまま出力して終了：
+
+確認できる公式または信頼できるゴルフ場名称が特定できないため、回答できません
+
+⸻
+
+■ フェーズ2：Par情報の所在確認
+
+正式名称のみを使って以下を探す：
+	•	楽天GORA コース情報
+	•	楽天GORA ヤーデージ
+	•	GDO コースガイド
+	•	公式サイトのコース案内
+	•	スコアカード
+
+参照優先順位：
+	1.	楽天GORAのコース情報・ヤーデージ表
+	2.	GDOコースガイド
+	3.	公式サイト
+	4.	その他信頼できるサイト
+
+⸻
+
+■ フェーズ3：GORA表構造の読み取りルール（重要）
+
+楽天GORAや同種サイトで表形式データがある場合、以下の手順で抽出すること。
+
+① OUTとINをそれぞれ別セクションとして認識する
+② 各セクション内で「PAR」または「Par」と書かれた行を特定する
+③ その行の左から順に1番〜9番の値を読む
+④ ヤードやHDCPやスコア列と混同しない
+⑤ ティー別ヤード行は無視し、PAR行のみ読む
+⑥ OUTとINのPAR行をそれぞれ9個ずつ取得する
+⑦ 前半コース名と後半コース名が指定と一致していることを確認する
+
+注意：
+	•	表の中にRegular/White表記があっても、Parは通常ティー共通なので、Par行が明示されていればそれを採用してよい
+	•	ただし、Parがコース別で異なる表示になっている場合は指定コースに一致するもののみ採用する
+	•	合計Parだけでは不可。必ずホール別Parを確認すること
+	
+	•	PARは行とは限らず列とは限らない。表の軸を判定し、Hole番号との対応が確認できた場合のみ抽出すること。判定できない場合は未確認としてCSVを出力しないこと
+
+⸻
+
+■ フェーズ4：検証
+
+以下をすべて満たした場合のみ出力可：
+	•	前半コース9個確認済み
+	•	後半コース9個確認済み
+	•	合計18個
+	•	すべて整数
+	•	コース名一致
+	•	PAR行から取得した値であることが確認できる
+	•	推定・補完ではない
+
+1つでも欠ける場合はCSV出力禁止。
+
+⸻
+
+■ 出力ルール
+	•	数字、カンマ、| のみ使用
+	•	前半9個、その後に |、その後に後半9個
+	•	1行のみ
+	•	説明文、前置き、見出しは禁止
+
+【出力形式】
+4,4,3,5,4,4,5,3,4|4,5,4,3,4,4,3,5,4
+
+⸻
+
+■ 確認できない場合
+
+以下をそのまま出力：
+
+確認できる公式または信頼できるホール別Par情報が見つからないため、回答できません
+
+`;
+
+}
+
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(e){
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    document.body.appendChild(temp);
+    temp.select();
+    let ok = false;
+    try{
+      ok = document.execCommand("copy");
+    }catch(err){
+      ok = false;
+    }
+    document.body.removeChild(temp);
+    return ok;
+  }
+}
+
+async function generateParPromptAndCopy(){
+  const info = getDraftRoundInfo();
+  const errs = validateDraftRoundInfo(info);
+  if(errs.length){
+    setParPrepStatus(errs.join("\n"), false);
+    alert("必要情報を確認してください");
+    return;
+  }
+  const prompt = buildParPrompt(info);
+  const ok = await copyText(prompt);
+  if(ok){
+    setParPrepStatus("プロンプトがコピーバッファに取り込まれました。", true);
+    showToast("プロンプトをコピーしました");
+  }else{
+    setParPrepStatus("コピーに失敗しました。もう一度お試しください。", false);
+    alert("コピーに失敗しました");
+  }
+}
+
+function extractCsvBlock(raw){
+  const text = String(raw || "").trim();
+  if(!text) return "";
+  const fenced = text.match(/```(?:csv|text)?\s*([\s\S]*?)```/i);
+  return fenced ? fenced[1].trim() : text;
+}
+
+function parseParCsv(raw){
+  const extracted = extractCsvBlock(raw);
+  if(!extracted) return { ok:false, errors:["Par設定欄が空です"] };
+
+  if(/[^0-9,\s|]/.test(extracted)){
+    return { ok:false, errors:["Par設定は数字・カンマ・空白のみで入力してください"] };
+  }
+
+  const normalized = extracted
+    .replace(/\|/g, " ")
+    .replace(/[\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if(!normalized){
+    return { ok:false, errors:["Par設定欄が空です"] };
+  }
+
+  const parts = normalized.split(/[\s,]+/).filter(v => v !== "");
+  if(parts.length !== 18){
+    return { ok:false, errors:[`Parの個数が ${parts.length} 個です。18個入力してください`] };
+  }
+
+  const pars = parts.map(v => Number(v));
+  const badIndex = pars.findIndex(v => !Number.isInteger(v) || v < 3 || v > 6);
+  if(badIndex >= 0){
+    return { ok:false, errors:[`${badIndex+1}番目のParが不正です（3〜6の整数で入力してください）`] };
+  }
+
+  return { ok:true, errors:[], pars, compact: normalized };
+}
+
+
+function buildStateFromParCsv(info, pars){
+  return {
+    formatVersion: FORMAT_VERSION,
+    courseName: info.courseName,
+    playDate: info.playDate,
+    frontCourseName: info.frontCourseName,
+    backCourseName: info.backCourseName,
+    players: info.players,
+    playerNames: info.playerNames.slice(),
+    data: pars.map(par => ({
+      par,
+      players: Array.from({length: info.players}, () => ({
+        score: UNSET,
+        putt: UNSET,
+        olympic: UNSET
+      }))
+    })),
+    currentHole: 0,
+    scoreMode: "diff"
+  };
+}
+
+function applyParCsvInput(){
+  const info = getDraftRoundInfo();
+  const infoErrs = validateDraftRoundInfo(info);
+  if(infoErrs.length){
+    setParPrepStatus(infoErrs.join("\n"), false);
+    alert("先に必要情報を確認してください");
+    return;
+  }
+
+  const input = document.getElementById("parCsvInput");
+  const result = parseParCsv(input ? input.value : "");
+  if(!result.ok){
+    setParPrepStatus(result.errors.join("\n"), false);
+    return;
+  }
+
+  const state = buildStateFromParCsv(info, result.pars);
+  const ok = loadStateObject(state);
+  if(ok){
+    setParPrepStatus("適用しました。", true);
+    updateStatus("Par入力済みデータを適用しました");
+    showToast("Par入力済みデータを適用しました");
+  }
+}
+
+function clearParPrepArea(){
+  const input = document.getElementById("parCsvInput");
+  if(input) input.value = "";
+  setParPrepStatus("");
+}
+
+window.addEventListener("load", () => {
+  if(!document.getElementById("playDate").value){
+    document.getElementById("playDate").value = todayString();
+  }
+  updateScoreModeToggle();
+  renderTimingSettingsPanel();
+  updateStatus("新規ラウンド、保存ファイルから新規ラウンド、ファイル読み込み、履歴再開のいずれかを選んでください");
+});
+</script>
+
+
+</body>
+</html>
