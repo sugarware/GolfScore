@@ -14,6 +14,12 @@ Policy:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>Golf Score Pro Version 10</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f5f2f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GolfScorePro">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
 <style>
 :root{
@@ -900,6 +906,7 @@ td,th{
 }
 
 </style>
+
 </head>
 <body>
 
@@ -3513,6 +3520,18 @@ window.addEventListener("load", () => {
 });
 </script>
 
+
+
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("./service-worker.js").catch(function(err){
+      console.warn("Service Worker registration failed:", err);
+    });
+  });
+}
+</script>
 
 </body>
 </html>
