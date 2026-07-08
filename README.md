@@ -1,4 +1,4 @@
-![スクリーン](https://github.com/sugarware/GolfScore/blob/main/IMG_0775.png)
+![スクリーン](https://github.com/sugarware/GolfScore/blob/main/IMG_2788.png)
 # GolfScore
 
 ゴルフスコアをプレイ中に少ない手間で入力出来ます
@@ -10,4 +10,5 @@
 
 * PWA対応で、通常アプリっぽく使える
 
-## 🚀[Webから実行出来ます！](https://sugarware.github.io/GolfScore
+## 🚀[Webから実行出来ます！](https://sugarware.github.io/GolfScore)
+
