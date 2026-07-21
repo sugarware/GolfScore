@@ -1,4 +1,4 @@
-const CACHE_NAME = "golf-score-pro-v10-pwa-20260708-final";
+const CACHE_NAME = "golf-score-pro-v10-pwa-20260721-playerfix";
 const APP_SHELL = [
   "./",
   "./index.html",

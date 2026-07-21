@@ -14,12 +14,6 @@ Policy:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>Golf Score Pro Version 10</title>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0f5f2f">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GolfScorePro">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
 <style>
 :root{
@@ -907,6 +901,13 @@ td,th{
 
 </style>
 
+<!-- PWA settings -->
+<meta name="theme-color" content="#f2ead7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Golf Score Pro">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -3236,9 +3237,9 @@ function getDraftRoundInfo(){
   const playDate = document.getElementById("playDate").value;
   const frontCourseName = document.getElementById("frontCourseName").value.trim();
   const backCourseName = document.getElementById("backCourseName").value.trim();
-  const selectedNames = (Array.isArray(playerNames) && playerNames.length === players && players > 0)
-    ? playerNames.slice()
-    : getSelectedNamesFromSetup();
+  // ラウンド開始時は、必ず現在の選択欄から全プレイヤー名を取得する。
+  // playerNames は初期表示時の値が残ることがあるため、開始前の入力元には使わない。
+  const selectedNames = getSelectedNamesFromSetup();
   return {
     courseName,
     playDate,
@@ -3522,16 +3523,14 @@ window.addEventListener("load", () => {
 
 
 
-
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function(){
     navigator.serviceWorker.register("./service-worker.js").catch(function(err){
-      console.warn("Service Worker registration failed:", err);
+      console.warn("Service worker registration failed:", err);
     });
   });
 }
 </script>
-
 </body>
 </html>
