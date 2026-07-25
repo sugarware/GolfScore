@@ -1,4 +1,4 @@
-![スクリーン](https://github.com/sugarware/GolfScore/blob/main/IMG_2788.png)
+![スクリーン](https://github.com/sugarware/GolfScore/blob/main/IMG_2888.png)
 # GolfScore
 
 ゴルフスコアをプレイ中に少ない手間で入力出来ます
