@@ -1212,7 +1212,6 @@ const HISTORY_KEY = "golfScoreHistory_final_v4";
 const UNSET = -1;
 
 const PLAYER_NAMES_KEY = "golfScorePlayerNames_v1";
-const DEFAULT_PLAYER_NAMES = ["菅原","吉森","高嶋","佐々木"];
 const PLAYER_ACTION_NEW = "__new__";
 const PLAYER_ACTION_DELETE = "__delete__";
 let availableNames = loadAvailableNames();
@@ -1223,9 +1222,6 @@ let playerNames = [];
 let data = [];
 let currentHole = 0;
 let selectedPlayerIndex = -1;
-let lastPlayerRowTapIndex = -1;
-let lastPlayerRowTapTime = 0;
-const PLAYER_DOUBLE_TAP_MS = 350;
 const TIMING_SETTINGS_KEY = "golfScoreTimingSettings_v2";
 const defaultTimingSettings = {
   holdMs: 600,
@@ -1255,7 +1251,7 @@ function loadAvailableNames(){
   }catch(e){
     console.warn("プレイヤー名一覧の読込に失敗しました", e);
   }
-  return DEFAULT_PLAYER_NAMES.slice();
+  return [];
 }
 
 function saveAvailableNames(){
@@ -1301,6 +1297,9 @@ function recordRecentlySelectedNames(names){
 
 function buildPlayerOptionsHtml(selectedName=""){
   let html = "";
+  if(!availableNames.length){
+    html += `<option value="" selected disabled>プレイヤーを登録してください</option>`;
+  }
   availableNames.forEach(name => {
     const selected = name === selectedName ? " selected" : "";
     html += `<option value="${escapeHtml(name)}"${selected}>${escapeHtml(name)}</option>`;
@@ -2729,7 +2728,7 @@ function disabledMetricMiniHtml(label){
       <div class="metricMiniLabel">${escapeHtml(label)}</div>
       <div class="controlMini">
         <div class="valueText">—</div>
-        <div class="diagBtn locked" aria-disabled="true" title="プレイヤーをダブルタップして選択してください">
+        <div class="diagBtn locked" aria-disabled="true" title="プレイヤーをタップして選択してください">
           <div class="diagPlus">+</div>
           <div class="diagMinus">−</div>
         </div>
@@ -2739,14 +2738,7 @@ function disabledMetricMiniHtml(label){
 }
 
 function handlePlayerRowTap(playerIndex){
-  const now = Date.now();
-  const isDoubleTap = lastPlayerRowTapIndex === playerIndex && (now - lastPlayerRowTapTime) <= PLAYER_DOUBLE_TAP_MS;
-  lastPlayerRowTapIndex = playerIndex;
-  lastPlayerRowTapTime = now;
-  if(!isDoubleTap) return;
-
-  lastPlayerRowTapIndex = -1;
-  lastPlayerRowTapTime = 0;
+  if(!Number.isInteger(playerIndex) || playerIndex < 0 || playerIndex >= players) return;
   selectedPlayerIndex = selectedPlayerIndex === playerIndex ? -1 : playerIndex;
   renderHole();
   showToast(selectedPlayerIndex >= 0 ? `${playerNames[selectedPlayerIndex]}を選択しました` : "プレイヤー選択を解除しました");
@@ -2777,7 +2769,7 @@ function renderPlayerValueList(holeIndex){
   html += `<div class="playerValueHeader"><div>Player</div><div>Score</div><div>Putts</div><div>Olympic</div></div>`;
   for(let p=0; p<players; p++){
     const selectedClass = p === selectedPlayerIndex ? " selected" : "";
-    html += `<div class="playerValueRow${selectedClass}" onclick="handlePlayerRowTap(${p})" role="button" tabindex="0" aria-label="${escapeHtml(playerNames[p])}をダブルタップして選択">`;
+    html += `<div class="playerValueRow${selectedClass}" onclick="handlePlayerRowTap(${p})" role="button" tabindex="0" aria-label="${escapeHtml(playerNames[p])}をタップして選択">`;
     html += `<div class="playerValueName">${escapeHtml(playerNames[p])}</div>`;
     html += `<div class="playerValueCell">${escapeHtml(displayScoreValue(holeIndex, p))}</div>`;
     html += `<div class="playerValueCell">${escapeHtml(displayMetricValue(holeIndex, p, "putt"))}</div>`;
@@ -2936,7 +2928,7 @@ function goHole(index){
 
 function goNextHole(){
   currentHole = (currentHole + 1) % 18;
-  selectedPlayerIndex = -1;
+  selectedPlayerIndex = players > 0 ? 0 : -1;
   renderHole();
   saveCurrentRound();
 }
