@@ -1,13 +1,13 @@
 {
-  "name": "Golf Score Pro Version 10",
+  "name": "Golf Score Pro Version 11",
   "short_name": "GolfScorePro",
-  "description": "Golf Score Pro Version 10 PWA",
+  "description": "Golf Score Pro Version 11 PWA",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f5f2f",
-  "theme_color": "#0f5f2f",
+  "background_color": "#f2ead7",
+  "theme_color": "#f2ead7",
   "icons": [
     {
       "src": "icons/icon-192.png",

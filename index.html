@@ -1,5 +1,5 @@
 <!--
-Golf Score Pro - Version 10
+Golf Score Pro - Version 11
 Source baseline: GolfScorePro5.html
 Policy:
 - This file preserves current behavior.
@@ -13,7 +13,7 @@ Policy:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Golf Score Pro Version 10</title>
+<title>Golf Score Pro Version 11</title>
 
 <style>
 :root{
@@ -183,6 +183,36 @@ td,th{
   font-size:12px;
   color:var(--sub);
   margin-top:2px;
+}
+
+.playerManageHint{
+  font-size:12px;
+  color:var(--sub);
+  margin:4px 0 8px;
+}
+
+.playerDeleteList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin:12px 0;
+  text-align:left;
+}
+
+.playerDeleteItem{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 10px;
+  border:1px solid #c9c2b0;
+  border-radius:10px;
+  background:#fffdf9;
+}
+
+.playerDeleteItem input{
+  width:auto;
+  margin:0;
+  transform:scale(1.2);
 }
 
 .shortCourseInput{
@@ -463,28 +493,50 @@ td,th{
   padding:0;
 }
 
-/* Player input cards */
-.playerCard{
-  border:1px solid #9a9483;
-  border-radius:12px;
-  background:var(--panel);
-  padding:6px 8px;
-  margin:4px 0;
-  box-shadow:0 1px 2px rgba(0,0,0,0.04);
-}
-
-.playerName{
-  font-size:16px;
-  font-weight:700;
-  margin-bottom:3px;
-  text-align:left;
-  color:#202020;
-}
-
-.playerCompactRow{
+/* Compact shared player input */
+.sharedPlayerInput{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:8px;
+  grid-template-columns:minmax(82px, 1.05fr) repeat(3, minmax(0, 1fr));
+  gap:6px;
+  align-items:stretch;
+  margin:4px 0 7px;
+}
+
+.selectedPlayerNameBox{
+  min-width:0;
+  border:2px solid var(--accent);
+  border-radius:12px;
+  background:#eef4ff;
+  padding:6px 5px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.selectedPlayerNameBox.none{
+  border-color:#aaa594;
+  background:#f1eee6;
+  color:#777;
+}
+
+.selectedPlayerCaption{
+  font-size:11px;
+  font-weight:700;
+  color:var(--sub);
+  line-height:1.1;
+  margin-bottom:4px;
+}
+
+.selectedPlayerNameText{
+  width:100%;
+  font-size:16px;
+  font-weight:800;
+  line-height:1.15;
+  text-align:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .metricMini{
@@ -495,13 +547,18 @@ td,th{
   padding:4px 5px;
 }
 
+.metricMini.disabledMetric{
+  opacity:.42;
+  filter:grayscale(1);
+  background:#f2f0e9;
+}
+
 .metricMiniLabel{
   font-size:12px;
   font-weight:700;
   line-height:1.1;
   margin-bottom:3px;
-  text-align:left;
-  padding-left:2px;
+  text-align:center;
   color:#202020;
 }
 
@@ -527,6 +584,63 @@ td,th{
   border:none;
   border-radius:0;
   color:#111;
+}
+
+.playerValueList{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.playerValueHeader,
+.playerValueRow{
+  display:grid;
+  grid-template-columns:minmax(82px, 1.05fr) repeat(3, minmax(0, 1fr));
+  gap:6px;
+  align-items:center;
+}
+
+.playerValueHeader{
+  padding:0 8px;
+  font-size:11px;
+  color:var(--sub);
+  font-weight:700;
+}
+
+.playerValueRow{
+  min-height:38px;
+  padding:4px 8px;
+  border:2px solid transparent;
+  border-radius:10px;
+  background:var(--panel);
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+  cursor:pointer;
+}
+
+.playerValueRow.selected{
+  border-color:#e64a35;
+  background:#fff1ed;
+  box-shadow:0 0 0 2px rgba(230,74,53,.12);
+}
+
+.playerValueName{
+  min-width:0;
+  font-size:15px;
+  font-weight:800;
+  text-align:left;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.playerValueCell{
+  font-size:18px;
+  font-weight:800;
+  line-height:1;
+  text-align:center;
 }
 
 .mainButtons{
@@ -911,7 +1025,7 @@ td,th{
 </head>
 <body>
 
-<h3>Golf Score Pro Version 10</h3>
+<h3>Golf Score Pro Version 11</h3>
 <div id="statusBar" class="statusBar"></div>
 
 <div id="setupArea">
@@ -1062,6 +1176,31 @@ td,th{
   </div>
 </div>
 
+
+<div id="playerNewOverlay" class="settingsOverlay hidden" onclick="onPlayerNewOverlayClick(event)">
+  <div class="settingsModal" onclick="event.stopPropagation()">
+    <div class="settingsTitle">プレイヤー新規登録</div>
+    <div class="note">登録する名前を入力してください。</div>
+    <input id="playerNewNameInput" type="text" maxlength="20" autocomplete="off" placeholder="プレイヤー名" onkeydown="handlePlayerNewNameKeydown(event)">
+    <div class="settingsButtons">
+      <button onclick="cancelPlayerNewPanel()">キャンセル</button>
+      <button class="primary" onclick="confirmPlayerNewName()">登録</button>
+    </div>
+  </div>
+</div>
+
+<div id="playerDeleteOverlay" class="settingsOverlay hidden" onclick="onPlayerDeleteOverlayClick(event)">
+  <div class="settingsModal" onclick="event.stopPropagation()">
+    <div class="settingsTitle">登録プレイヤー削除</div>
+    <div class="note">削除する名前にチェックを付けてください。ラウンド履歴や保存ファイル内の名前は変更されません。</div>
+    <div id="playerDeleteList" class="playerDeleteList"></div>
+    <div class="settingsButtons">
+      <button onclick="closePlayerDeletePanel()">キャンセル</button>
+      <button class="primary" onclick="deleteMarkedPlayers()">チェックした名前を削除</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 
@@ -1072,12 +1211,21 @@ const AUTOSAVE_KEY = "golfScoreCurrentRound_final_v4";
 const HISTORY_KEY = "golfScoreHistory_final_v4";
 const UNSET = -1;
 
-let availableNames = ["菅原","吉森","高嶋","佐々木","ゲスト"];
+const PLAYER_NAMES_KEY = "golfScorePlayerNames_v1";
+const DEFAULT_PLAYER_NAMES = ["菅原","吉森","高嶋","佐々木"];
+const PLAYER_ACTION_NEW = "__new__";
+const PLAYER_ACTION_DELETE = "__delete__";
+let availableNames = loadAvailableNames();
+let pendingNewPlayerSlot = -1;
+let pendingNewPlayerPrevious = "";
 let players = 0;
 let playerNames = [];
-let guestCustomNames = [];
 let data = [];
 let currentHole = 0;
+let selectedPlayerIndex = -1;
+let lastPlayerRowTapIndex = -1;
+let lastPlayerRowTapTime = 0;
+const PLAYER_DOUBLE_TAP_MS = 350;
 const TIMING_SETTINGS_KEY = "golfScoreTimingSettings_v2";
 const defaultTimingSettings = {
   holdMs: 600,
@@ -1092,6 +1240,128 @@ let scoreMode = "diff";
 let toastTimer = null;
 let loadedTemplate = null;
 let settingsTestValue = 4;
+
+function normalizePlayerName(raw){
+  return String(raw || "").trim().replace(/\s+/g, " ").slice(0, 20);
+}
+
+function loadAvailableNames(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(PLAYER_NAMES_KEY) || "null");
+    if(Array.isArray(saved)){
+      const normalized = saved.map(normalizePlayerName).filter(Boolean);
+      return Array.from(new Set(normalized));
+    }
+  }catch(e){
+    console.warn("プレイヤー名一覧の読込に失敗しました", e);
+  }
+  return DEFAULT_PLAYER_NAMES.slice();
+}
+
+function saveAvailableNames(){
+  localStorage.setItem(PLAYER_NAMES_KEY, JSON.stringify(availableNames));
+}
+
+function registerPlayerName(raw, moveToFront=true){
+  const name = normalizePlayerName(raw);
+  if(!name) return "";
+  availableNames = availableNames.filter(item => item !== name);
+  if(moveToFront) availableNames.unshift(name);
+  else availableNames.push(name);
+  saveAvailableNames();
+  return name;
+}
+
+function registerPlayerNames(names, moveToFront=false){
+  if(!Array.isArray(names)) return;
+  const list = names.map(normalizePlayerName).filter(Boolean);
+  if(moveToFront){
+    for(let i=list.length-1; i>=0; i--) registerPlayerName(list[i], true);
+  }else{
+    let changed = false;
+    list.forEach(name => {
+      if(!availableNames.includes(name)){
+        availableNames.push(name);
+        changed = true;
+      }
+    });
+    if(changed) saveAvailableNames();
+  }
+}
+
+function recordRecentlySelectedNames(names){
+  const unique = [];
+  (names || []).forEach(raw => {
+    const name = normalizePlayerName(raw);
+    if(name && !unique.includes(name)) unique.push(name);
+  });
+  availableNames = unique.concat(availableNames.filter(name => !unique.includes(name)));
+  saveAvailableNames();
+}
+
+function buildPlayerOptionsHtml(selectedName=""){
+  let html = "";
+  availableNames.forEach(name => {
+    const selected = name === selectedName ? " selected" : "";
+    html += `<option value="${escapeHtml(name)}"${selected}>${escapeHtml(name)}</option>`;
+  });
+  html += `<option value="${PLAYER_ACTION_NEW}">＋ 新規登録</option>`;
+  html += `<option value="${PLAYER_ACTION_DELETE}">－ 登録名を削除</option>`;
+  return html;
+}
+
+function refreshPlayerSelectOptions(selectedBySlot=[]){
+  for(let i=0; i<players; i++){
+    const sel = document.getElementById("playerSel" + i);
+    if(!sel) continue;
+    const selected = normalizePlayerName(selectedBySlot[i] || sel.value);
+    sel.innerHTML = buildPlayerOptionsHtml(selected);
+    if(selected && availableNames.includes(selected)) sel.value = selected;
+    else if(availableNames[i]) sel.value = availableNames[i];
+    else if(availableNames[0]) sel.value = availableNames[0];
+  }
+}
+
+function openPlayerDeletePanel(){
+  const overlay = document.getElementById("playerDeleteOverlay");
+  const list = document.getElementById("playerDeleteList");
+  if(!overlay || !list) return;
+  if(!availableNames.length){
+    list.innerHTML = "<div class='note'>削除できる登録名はありません。</div>";
+  }else{
+    list.innerHTML = availableNames.map((name, index) =>
+      `<label class="playerDeleteItem"><input type="checkbox" value="${escapeHtml(name)}" id="deletePlayer${index}"><span>${escapeHtml(name)}</span></label>`
+    ).join("");
+  }
+  overlay.classList.remove("hidden");
+}
+
+function closePlayerDeletePanel(){
+  const overlay = document.getElementById("playerDeleteOverlay");
+  if(overlay) overlay.classList.add("hidden");
+}
+
+function onPlayerDeleteOverlayClick(event){
+  if(event.target && event.target.id === "playerDeleteOverlay") closePlayerDeletePanel();
+}
+
+function deleteMarkedPlayers(){
+  const checked = Array.from(document.querySelectorAll("#playerDeleteList input[type='checkbox']:checked"));
+  const names = checked.map(el => el.value);
+  if(!names.length){
+    showToast("削除する名前を選択してください");
+    return;
+  }
+  if(!confirm(names.join("、") + " を削除しますか？")) return;
+  const currentSelections = collectSetupSelectionSnapshot();
+  availableNames = availableNames.filter(name => !names.includes(name));
+  saveAvailableNames();
+  closePlayerDeletePanel();
+  refreshPlayerSelectOptions(currentSelections.map(name => names.includes(name) ? "" : name));
+  playerNames = getSelectedNamesFromSetup();
+  updateStatus("登録プレイヤーを削除しました");
+  showToast("登録名を削除しました");
+}
 
 function updateStatus(message){
   document.getElementById("statusBar").innerText = message || "";
@@ -1395,7 +1665,8 @@ function loadStateObject(state){
   }
 
   players = state.players || state.playerNames.length || 0;
-  playerNames = state.playerNames.slice(0, players);
+  playerNames = state.playerNames.slice(0, players).map(normalizePlayerName);
+  registerPlayerNames(playerNames, false);
 
   if(players < 1){
     alert("プレイヤー情報が不正です");
@@ -1407,6 +1678,7 @@ function loadStateObject(state){
   data = state.data.map(hole => normalizeHoleFromState(hole, players, isLegacy));
   loadedTemplate = null;
   currentHole = Number.isInteger(state.currentHole) ? Math.min(17, Math.max(0, state.currentHole)) : 0;
+  selectedPlayerIndex = -1;
   scoreMode = state.scoreMode === "abs" ? "abs" : "diff";
 
   document.getElementById("courseName").value = state.courseName || "";
@@ -1456,10 +1728,9 @@ function compactParList(pars){
 
 function getDefaultNameForSlot(index, usedNames){
   for(const name of availableNames){
-    if(name === "ゲスト") continue;
     if(!usedNames.has(name)) return name;
   }
-  return availableNames.find(name => name !== "ゲスト") || "ゲスト";
+  return availableNames[0] || "";
 }
 
 function collectSetupSelectionSnapshot(){
@@ -1468,37 +1739,32 @@ function collectSetupSelectionSnapshot(){
   for(let i=0; i<count; i++){
     const sel = document.getElementById("playerSel" + i);
     if(!sel) continue;
-    if(sel.value === "ゲスト"){
-      names.push(sanitizeGuestName(guestCustomNames[i] || "") || "ゲスト");
+    if(sel.value !== PLAYER_ACTION_NEW && sel.value !== PLAYER_ACTION_DELETE){
+      names.push(normalizePlayerName(sel.value));
     }else{
-      names.push(sel.value);
+      names.push("");
     }
   }
   return names;
 }
 
 function applyPlayerNamesToSetup(names, playerCount){
+  // テンプレートや保存ファイルにだけ存在する名前も、先に登録一覧へ追加する。
+  // select生成後に登録するとoptionが存在せず空欄になるため、各selectの選択肢も再構築する。
+  registerPlayerNames(names, false);
   const used = new Set();
   for(let i=0; i<playerCount; i++){
     const sel = document.getElementById("playerSel" + i);
     if(!sel) continue;
-    const rawName = Array.isArray(names) ? String(names[i] || "").trim() : "";
-    if(rawName && availableNames.includes(rawName) && rawName !== "ゲスト"){
-      sel.value = rawName;
-      guestCustomNames[i] = "";
-      used.add(rawName);
-    }else if(rawName){
-      sel.value = "ゲスト";
-      guestCustomNames[i] = sanitizeGuestName(rawName);
-      used.add(rawName);
-    }else{
-      const fallback = getDefaultNameForSlot(i, used);
-      sel.value = fallback;
-      guestCustomNames[i] = "";
-      used.add(fallback);
+    const rawName = Array.isArray(names) ? normalizePlayerName(names[i]) : "";
+    let selected = rawName && availableNames.includes(rawName) ? rawName : getDefaultNameForSlot(i, used);
+
+    sel.innerHTML = buildPlayerOptionsHtml(selected);
+    if(selected){
+      sel.value = selected;
+      sel.dataset.previousValue = selected;
+      used.add(selected);
     }
-    updateGuestOptionDisplay(i);
-    updateGuestNameHint(i);
   }
   playerNames = getSelectedNamesFromSetup();
 }
@@ -1640,49 +1906,94 @@ function setHistory(history){
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-function sanitizeGuestName(raw){
-  return String(raw || "").trim().slice(0, 12);
-}
-
-function updateGuestNameHint(i){
-  const el = document.getElementById("guestNameHint" + i);
-  if(!el) return;
-  const name = sanitizeGuestName(guestCustomNames[i] || "");
-  el.textContent = name ? `入力名: ${name}` : "";
-}
-
-function updateGuestOptionDisplay(i){
-  const sel = document.getElementById("playerSel" + i);
+function restorePlayerSelection(slot, previous){
+  const sel = document.getElementById("playerSel" + slot);
   if(!sel) return;
-  const guestOption = Array.from(sel.options).find(opt => opt.value === "ゲスト");
-  if(!guestOption) return;
-  const name = sanitizeGuestName(guestCustomNames[i] || "");
-  guestOption.textContent = name || "ゲスト";
+  sel.value = previous && availableNames.includes(previous) ? previous : (availableNames[0] || "");
+  sel.dataset.previousValue = sel.value;
 }
 
-function promptGuestName(i){
-  const current = sanitizeGuestName(guestCustomNames[i] || "");
-  const entered = prompt("ゲスト名を入力してください", current);
-  if(entered === null){
-    updateGuestOptionDisplay(i);
-    updateGuestNameHint(i);
+function openPlayerNewPanel(slot, previous){
+  pendingNewPlayerSlot = slot;
+  pendingNewPlayerPrevious = previous || "";
+  const overlay = document.getElementById("playerNewOverlay");
+  const input = document.getElementById("playerNewNameInput");
+  if(!overlay || !input) return;
+  input.value = "";
+  overlay.classList.remove("hidden");
+  setTimeout(() => input.focus(), 80);
+}
+
+function cancelPlayerNewPanel(){
+  const slot = pendingNewPlayerSlot;
+  const previous = pendingNewPlayerPrevious;
+  const overlay = document.getElementById("playerNewOverlay");
+  if(overlay) overlay.classList.add("hidden");
+  pendingNewPlayerSlot = -1;
+  pendingNewPlayerPrevious = "";
+  if(slot >= 0) restorePlayerSelection(slot, previous);
+}
+
+function onPlayerNewOverlayClick(event){
+  if(event.target && event.target.id === "playerNewOverlay") cancelPlayerNewPanel();
+}
+
+function handlePlayerNewNameKeydown(event){
+  if(event.key === "Enter"){
+    event.preventDefault();
+    confirmPlayerNewName();
+  }else if(event.key === "Escape"){
+    event.preventDefault();
+    cancelPlayerNewPanel();
+  }
+}
+
+function confirmPlayerNewName(){
+  const slot = pendingNewPlayerSlot;
+  const input = document.getElementById("playerNewNameInput");
+  const name = normalizePlayerName(input ? input.value : "");
+  if(slot < 0) return;
+  if(!name){
+    alert("名前を入力してください");
+    if(input) input.focus();
     return;
   }
-  guestCustomNames[i] = sanitizeGuestName(entered);
-  updateGuestOptionDisplay(i);
-  updateGuestNameHint(i);
+  const currentSelections = collectSetupSelectionSnapshot();
+  registerPlayerName(name, true);
+  currentSelections[slot] = name;
+  const overlay = document.getElementById("playerNewOverlay");
+  if(overlay) overlay.classList.add("hidden");
+  pendingNewPlayerSlot = -1;
+  pendingNewPlayerPrevious = "";
+  refreshPlayerSelectOptions(currentSelections);
+  const sel = document.getElementById("playerSel" + slot);
+  if(sel){
+    sel.value = name;
+    sel.dataset.previousValue = name;
+  }
+  playerNames = getSelectedNamesFromSetup();
+  updateStatus(`${name} を登録しました`);
+  showToast("プレイヤー名を登録しました");
 }
 
 function handlePlayerNameSelection(i){
   const sel = document.getElementById("playerSel" + i);
   if(!sel) return;
-  if(sel.value === "ゲスト"){
-    promptGuestName(i);
-  }else{
-    guestCustomNames[i] = "";
-    updateGuestOptionDisplay(i);
-    updateGuestNameHint(i);
+  const previous = normalizePlayerName(sel.dataset.previousValue || "");
+
+  if(sel.value === PLAYER_ACTION_NEW){
+    openPlayerNewPanel(i, previous);
+    return;
   }
+
+  if(sel.value === PLAYER_ACTION_DELETE){
+    restorePlayerSelection(i, previous);
+    openPlayerDeletePanel();
+    return;
+  }
+
+  sel.dataset.previousValue = sel.value;
+  playerNames = getSelectedNamesFromSetup();
 }
 
 function setPlayers(n, options={}){
@@ -1691,21 +2002,22 @@ function setPlayers(n, options={}){
     ? ((Array.isArray(options.initialNames) && options.initialNames.length) ? options.initialNames.slice() : collectSetupSelectionSnapshot())
     : ((Array.isArray(options.initialNames) && options.initialNames.length) ? options.initialNames.slice() : []);
   players = n;
-  guestCustomNames = Array.from({length:n}, (_, i) => "");
   let html = "<h4>名前選択</h4>";
+  html += "<div class='playerManageHint'>名前は最近選択した順に表示されます。「新規登録」「登録名を削除」も各選択欄から利用できます。</div>";
   for(let i=0; i<n; i++){
     html += "<div class='playerSelectRow'>";
     html += "<select id='playerSel" + i + "' onchange='handlePlayerNameSelection(" + i + ")'>";
-    availableNames.forEach(name => {
-      html += "<option value='" + escapeHtml(name) + "'>" + escapeHtml(name) + "</option>";
-    });
+    html += buildPlayerOptionsHtml();
     html += "</select>";
-    html += "<div id='guestNameHint" + i + "' class='guestNameHint'></div>";
     html += "</div>";
   }
   html += "<button class='primary' onclick='startGame()'>ラウンド開始</button>";
   document.getElementById("nameSelectArea").innerHTML = html;
   applyPlayerNamesToSetup(previousNames, n);
+  for(let i=0; i<n; i++){
+    const sel = document.getElementById("playerSel" + i);
+    if(sel) sel.dataset.previousValue = sel.value;
+  }
   updateStatus("プレイヤー名を選択してください");
 }
 
@@ -1718,6 +2030,8 @@ function startGame(){
     alert(msg);
     return;
   }
+
+  recordRecentlySelectedNames(info.playerNames);
 
   const input = document.getElementById("parCsvInput");
   const csvText = input ? input.value.trim() : "";
@@ -1747,6 +2061,7 @@ function startGame(){
   players = info.players;
   data = makeInitialData(players);
   currentHole = 0;
+  selectedPlayerIndex = -1;
   scoreMode = "diff";
 
   document.getElementById("setupArea").classList.add("hidden");
@@ -2408,32 +2723,84 @@ function diagClickPar(event){
   }
 }
 
+function disabledMetricMiniHtml(label){
+  return `
+    <div class="metricMini disabledMetric" aria-disabled="true">
+      <div class="metricMiniLabel">${escapeHtml(label)}</div>
+      <div class="controlMini">
+        <div class="valueText">—</div>
+        <div class="diagBtn locked" aria-disabled="true" title="プレイヤーをダブルタップして選択してください">
+          <div class="diagPlus">+</div>
+          <div class="diagMinus">−</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function handlePlayerRowTap(playerIndex){
+  const now = Date.now();
+  const isDoubleTap = lastPlayerRowTapIndex === playerIndex && (now - lastPlayerRowTapTime) <= PLAYER_DOUBLE_TAP_MS;
+  lastPlayerRowTapIndex = playerIndex;
+  lastPlayerRowTapTime = now;
+  if(!isDoubleTap) return;
+
+  lastPlayerRowTapIndex = -1;
+  lastPlayerRowTapTime = 0;
+  selectedPlayerIndex = selectedPlayerIndex === playerIndex ? -1 : playerIndex;
+  renderHole();
+  showToast(selectedPlayerIndex >= 0 ? `${playerNames[selectedPlayerIndex]}を選択しました` : "プレイヤー選択を解除しました");
+}
+
+function renderSharedPlayerInput(holeIndex){
+  const selected = Number.isInteger(selectedPlayerIndex) && selectedPlayerIndex >= 0 && selectedPlayerIndex < players;
+  const name = selected ? playerNames[selectedPlayerIndex] : "選択なし";
+  let html = `<div class="sharedPlayerInput">`;
+  html += `<div class="selectedPlayerNameBox ${selected ? "" : "none"}">`;
+  html += `<div class="selectedPlayerCaption">選択中</div>`;
+  html += `<div class="selectedPlayerNameText">${escapeHtml(name)}</div></div>`;
+  if(selected){
+    html += metricMiniHtml("Score", selectedPlayerIndex, "score", displayScoreValue(holeIndex, selectedPlayerIndex));
+    html += metricMiniHtml("Putts", selectedPlayerIndex, "putt", displayMetricValue(holeIndex, selectedPlayerIndex, "putt"));
+    html += metricMiniHtml("Olympic", selectedPlayerIndex, "olympic", displayMetricValue(holeIndex, selectedPlayerIndex, "olympic"));
+  }else{
+    html += disabledMetricMiniHtml("Score");
+    html += disabledMetricMiniHtml("Putts");
+    html += disabledMetricMiniHtml("Olympic");
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderPlayerValueList(holeIndex){
+  let html = `<div class="playerValueList">`;
+  html += `<div class="playerValueHeader"><div>Player</div><div>Score</div><div>Putts</div><div>Olympic</div></div>`;
+  for(let p=0; p<players; p++){
+    const selectedClass = p === selectedPlayerIndex ? " selected" : "";
+    html += `<div class="playerValueRow${selectedClass}" onclick="handlePlayerRowTap(${p})" role="button" tabindex="0" aria-label="${escapeHtml(playerNames[p])}をダブルタップして選択">`;
+    html += `<div class="playerValueName">${escapeHtml(playerNames[p])}</div>`;
+    html += `<div class="playerValueCell">${escapeHtml(displayScoreValue(holeIndex, p))}</div>`;
+    html += `<div class="playerValueCell">${escapeHtml(displayMetricValue(holeIndex, p, "putt"))}</div>`;
+    html += `<div class="playerValueCell">${escapeHtml(displayMetricValue(holeIndex, p, "olympic"))}</div>`;
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
 function renderHole(){
   renderTopBlock();
   if(isCurrentHoleParUnset()){
     ensureControlState(getParControlKey()).enabled = true;
   }
   applyParEditVisual();
-  applyDiagEditVisuals();
   if(isParEditEnabled() || isCurrentHoleParUnset()){
     scheduleParRelock();
   }
 
   const h = currentHole;
-  let html = "";
-
-  for(let p=0; p<players; p++){
-    html += "<div class='playerCard'>";
-    html += "<div class='playerName'>" + escapeHtml(playerNames[p]) + "</div>";
-    html += "<div class='playerCompactRow'>";
-    html += metricMiniHtml("Score", p, "score", displayScoreValue(h, p));
-    html += metricMiniHtml("Putt", p, "putt", displayMetricValue(h, p, "putt"));
-    html += metricMiniHtml("Olympic", p, "olympic", displayMetricValue(h, p, "olympic"));
-    html += "</div>";
-    html += "</div>";
-  }
-
-  document.getElementById("inputArea").innerHTML = html;
+  document.getElementById("inputArea").innerHTML = renderSharedPlayerInput(h) + renderPlayerValueList(h);
+  applyDiagEditVisuals();
   showSummary();
   updateScoreModeToggle();
 }
@@ -2562,12 +2929,14 @@ function chgPar(delta){
 function goHole(index){
   if(index < 0 || index > 17) return;
   currentHole = index;
+  selectedPlayerIndex = -1;
   renderHole();
   saveCurrentRound();
 }
 
 function goNextHole(){
   currentHole = (currentHole + 1) % 18;
+  selectedPlayerIndex = -1;
   renderHole();
   saveCurrentRound();
 }
@@ -2757,7 +3126,7 @@ function buildSummaryExportRows(summaryData){
   });
   rows.push({
     type:"sub",
-    label:"PUTT",
+    label:"PUTTS",
     par:"-",
     cells: Array.from({length:players}, (_, p) => blankIfZeroCount(summaryData.totalPutt[p], summaryData.totalPuttCount[p]))
   });
@@ -3042,7 +3411,7 @@ function showSummary(){
   }
   html += "</tr>";
 
-  html += "<tr class='subRow'><td>PUTT</td><td>-</td>";
+  html += "<tr class='subRow'><td>PUTTS</td><td>-</td>";
   for(let p=0; p<players; p++){
     html += "<td>" + blankIfZeroCount(s.totalPutt[p], s.totalPuttCount[p]) + "</td>";
   }
@@ -3162,6 +3531,7 @@ function swapFrontBackDuringPlay(){
 
   data = data.slice(9).concat(data.slice(0, 9));
   currentHole = Number.isInteger(currentHole) ? ((currentHole + 9) % 18) : 0;
+  selectedPlayerIndex = -1;
 
   const courseName = document.getElementById("courseName").value || "";
   const playDate = document.getElementById("playDate").value || "";
@@ -3225,9 +3595,8 @@ function getSelectedNamesFromSetup(){
   const result = [];
   for(let i=0; i<players; i++){
     const sel = document.getElementById("playerSel" + i);
-    if(!sel || !sel.value) continue;
-    if(sel.value === "ゲスト") result.push(sanitizeGuestName(guestCustomNames[i] || "") || "ゲスト");
-    else result.push(sel.value);
+    if(!sel || !sel.value || sel.value === PLAYER_ACTION_NEW || sel.value === PLAYER_ACTION_DELETE) continue;
+    result.push(normalizePlayerName(sel.value));
   }
   return result;
 }
