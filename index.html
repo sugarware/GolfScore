@@ -1,5 +1,5 @@
 <!--
-Golf Score Pro - Version 12
+Golf Score Pro - Version 13
 Source baseline: GolfScorePro5.html
 Policy:
 - This file preserves current behavior.
@@ -13,7 +13,7 @@ Policy:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Golf Score Pro Version 12</title>
+<title>Golf Score Pro Version 13</title>
 
 <style>
 :root{
@@ -67,6 +67,9 @@ button{
   background:#fff;
   color:var(--text);
   cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
 }
 
 button.primary{
@@ -908,6 +911,14 @@ td,th{
   font-weight:800;
 }
 
+/* Score-based background colors for per-player hole cells */
+.scoreBgPar{ background:#edf8ed !important; }
+.scoreBgBirdie{ background:#d9f0d8 !important; }
+.scoreBgEagle{ background:#bfe5bd !important; }
+.scoreBgDoubleBogey{ background:#fde7e5 !important; }
+.scoreBgTripleBogey{ background:#f9d0cc !important; }
+.scoreBgQuadPlus{ background:#f3b8b2 !important; }
+
 .summaryArea{
   max-width:1100px;
   margin:0 auto 10px;
@@ -1108,12 +1119,12 @@ td,th{
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Golf Score Pro">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest-v13.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-v13-192.png">
 </head>
 <body>
 
-<h3>Golf Score Pro Version 12</h3>
+<h3>Golf Score Pro Version 13</h3>
 <div id="statusBar" class="statusBar"></div>
 
 <div id="setupArea">
@@ -1207,6 +1218,7 @@ td,th{
   </div>
 
   <div class="mainButtons">
+    <button onclick="openHoleShiftPanel()">ホールずれ修正</button>
     <button onclick="swapFrontBackDuringPlay()">前後半を交換</button>
     <button onclick="resetRound()">新規ラウンド</button>
   </div>
@@ -1317,6 +1329,23 @@ td,th{
     <div class="settingsButtons">
       <button onclick="closePlayerDeletePanel()">キャンセル</button>
       <button class="primary" onclick="deleteMarkedPlayers()">チェックした名前を削除</button>
+    </div>
+  </div>
+</div>
+
+<div id="holeShiftOverlay" class="settingsOverlay hidden" onclick="onHoleShiftOverlayClick(event)">
+  <div class="settingsModal" onclick="event.stopPropagation()">
+    <div class="settingsTitle">ホールずれ修正</div>
+    <div id="holeShiftTargetLabel" style="font-weight:800; margin:8px 0;"></div>
+    <div class="note" style="text-align:left; line-height:1.55;">
+      Parはホール固有なので移動しません。Score / Putts / Olympicだけを全プレイヤーまとめて移動します。Scoreは移動元と移動先のParに対する相対打数を維持します。
+    </div>
+    <div class="settingsButtons" style="flex-direction:column; align-items:stretch;">
+      <button onclick="shiftPlayDataEarlier()">次のホール以降の入力を1ホール前へ</button>
+      <div class="note" style="text-align:left;">このホールを飛ばして、次のホール欄から入力してしまった場合に使用</div>
+      <button onclick="shiftPlayDataLater()">このホール以降の入力を1ホール後ろへ</button>
+      <div class="note" style="text-align:left;">本来は次のホールのデータを、このホール欄から入力し始めてしまった場合に使用</div>
+      <button class="primary" onclick="closeHoleShiftPanel()">閉じる</button>
     </div>
   </div>
 </div>
@@ -3196,6 +3225,132 @@ function goNextHole(){
   saveCurrentRound();
 }
 
+function scoreBgClass(cell){
+  if(!cell || !cell.scoreEntered || !isValidPar(cell.par)) return "";
+  const diff = cell.score - cell.par;
+  if(diff <= -2) return "scoreBgEagle";
+  if(diff === -1) return "scoreBgBirdie";
+  if(diff === 0) return "scoreBgPar";
+  if(diff === 1) return "";
+  if(diff === 2) return "scoreBgDoubleBogey";
+  if(diff === 3) return "scoreBgTripleBogey";
+  return "scoreBgQuadPlus";
+}
+
+function scoreBgColor(cell, fallback){
+  if(!cell || !cell.scoreEntered || !isValidPar(cell.par)) return fallback;
+  const diff = cell.score - cell.par;
+  if(diff <= -2) return "#bfe5bd";
+  if(diff === -1) return "#d9f0d8";
+  if(diff === 0) return "#edf8ed";
+  if(diff === 1) return fallback;
+  if(diff === 2) return "#fde7e5";
+  if(diff === 3) return "#f9d0cc";
+  return "#f3b8b2";
+}
+
+function makeBlankPlayPlayers(){
+  return Array.from({length:players}, () => ({ score:UNSET, putt:UNSET, olympic:UNSET }));
+}
+
+function clonePlayPlayersForHole(playersData, sourcePar, destinationPar){
+  return Array.from({length:players}, (_, p) => {
+    const src = playersData?.[p] || {};
+    let movedScore = UNSET;
+    if(isEnteredScore(src.score)){
+      if(isValidPar(sourcePar) && isValidPar(destinationPar)){
+        movedScore = Math.max(1, destinationPar + (src.score - sourcePar));
+      }else{
+        movedScore = src.score;
+      }
+    }
+    return {
+      score: movedScore,
+      putt: isEnteredCount(src.putt) ? src.putt : UNSET,
+      olympic: isEnteredCount(src.olympic) ? src.olympic : UNSET
+    };
+  });
+}
+
+function holeHasPlayDataAt(index){
+  return index >= 0 && index < 18 && holeHasAnyPlayData(data[index]);
+}
+
+function lastEnteredHoleFrom(start){
+  for(let h=17; h>=start; h--){
+    if(holeHasPlayDataAt(h)) return h;
+  }
+  return -1;
+}
+
+function openHoleShiftPanel(){
+  const overlay = document.getElementById("holeShiftOverlay");
+  const label = document.getElementById("holeShiftTargetLabel");
+  if(label) label.textContent = `基準ホール: ${currentHoleCourseLabel(currentHole)}`;
+  if(overlay) overlay.classList.remove("hidden");
+}
+
+function closeHoleShiftPanel(){
+  const overlay = document.getElementById("holeShiftOverlay");
+  if(overlay) overlay.classList.add("hidden");
+}
+
+function onHoleShiftOverlayClick(event){
+  if(event.target && event.target.id === "holeShiftOverlay") closeHoleShiftPanel();
+}
+
+function shiftPlayDataEarlier(){
+  const start = currentHole;
+  if(start >= 17){
+    alert("18番ホールでは前へずらす対象がありません");
+    return;
+  }
+  const last = lastEnteredHoleFrom(start + 1);
+  if(last < 0){
+    alert("次のホール以降に移動できる入力データがありません");
+    return;
+  }
+  const targetLabel = currentHoleCourseLabel(start);
+  if(!confirm(`${targetLabel} を基準に、次のホール以降の Score / Putts / Olympic を1ホール前へずらします。\nScoreはPar基準の相対打数を維持し、Par自体は移動しません。よろしいですか？`)) return;
+
+  for(let h=start; h<last; h++){
+    data[h].players = clonePlayPlayersForHole(data[h + 1].players, data[h + 1].par, data[h].par);
+  }
+  data[last].players = makeBlankPlayPlayers();
+  selectedPlayerIndex = players > 0 ? 0 : -1;
+  closeHoleShiftPanel();
+  renderHole();
+  saveCurrentRound();
+  updateStatus("ホールずれを1ホール前へ修正しました");
+  showToast("入力を1ホール前へ移動しました");
+}
+
+function shiftPlayDataLater(){
+  const start = currentHole;
+  const last = lastEnteredHoleFrom(start);
+  if(last < 0){
+    alert("このホール以降に移動できる入力データがありません");
+    return;
+  }
+  if(last >= 17){
+    alert("18番ホールに入力済みデータがあるため、後ろへずらすとデータが失われます。修正は実行しませんでした。");
+    return;
+  }
+  const targetLabel = currentHoleCourseLabel(start);
+  if(!confirm(`${targetLabel} 以降の Score / Putts / Olympic を1ホール後ろへずらします。\n${targetLabel} の入力欄は空になります。ScoreはPar基準の相対打数を維持し、Par自体は移動しません。よろしいですか？`)) return;
+
+  for(let h=last + 1; h>start; h--){
+    data[h].players = clonePlayPlayersForHole(data[h - 1].players, data[h - 1].par, data[h].par);
+  }
+  data[start].players = makeBlankPlayPlayers();
+  selectedPlayerIndex = players > 0 ? 0 : -1;
+  closeHoleShiftPanel();
+  renderHole();
+  saveCurrentRound();
+  updateStatus("ホールずれを1ホール後ろへ修正しました");
+  showToast("入力を1ホール後ろへ移動しました");
+}
+
 function blankIfZeroCount(value, count){
   return count > 0 ? String(value) : "";
 }
@@ -3352,7 +3507,10 @@ function buildSummaryExportRows(summaryData){
         return {
           main: c.scoreEntered ? scoreCellText(c) : "",
           putt: metrics.puttText,
-          oly: metrics.olyText
+          oly: metrics.olyText,
+          score: c.score,
+          par: c.par,
+          scoreEntered: c.scoreEntered
         };
       })
     });
@@ -3534,6 +3692,10 @@ function makeSummaryExportCanvas(){
       const rect = cellRect(c, y, h);
       let bg = defaultBg;
       if(row.type === "hole" && row.current && c === 0) bg = currentFirstBg;
+      if(row.type === "hole" && c >= 2){
+        const scoreCell = row.cells[c - 2];
+        bg = scoreBgColor(scoreCell, bg);
+      }
       drawCellBackground(rect, bg);
 
       if(row.type === "hole" && c >= 2){
@@ -3643,7 +3805,8 @@ function showSummary(){
     for(const c of row.cells){
       const scoreHtml = c.scoreEntered ? escapeHtml(scoreCellText(c)) : "&nbsp;";
       const metrics = metricSubline(c);
-      html += "<td><div class='scoreCellWrap'><div class='scoreCellMain'>" + scoreHtml + "</div><div class='scoreCellCornerTop'>" + escapeHtml(metrics.olyText) + "</div><div class='scoreCellCornerBottom'>" + escapeHtml(metrics.puttText) + "</div></div></td>";
+      const bgClass = scoreBgClass(c);
+      html += "<td" + (bgClass ? " class='" + bgClass + "'" : "") + "><div class='scoreCellWrap'><div class='scoreCellMain'>" + scoreHtml + "</div><div class='scoreCellCornerTop'>" + escapeHtml(metrics.olyText) + "</div><div class='scoreCellCornerBottom'>" + escapeHtml(metrics.puttText) + "</div></div></td>";
     }
     html += "</tr>";
 
@@ -4154,7 +4317,7 @@ window.addEventListener("load", () => {
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function(){
-    navigator.serviceWorker.register("./service-worker.js").catch(function(err){
+    navigator.serviceWorker.register("./service-worker-v13.js").catch(function(err){
       console.warn("Service worker registration failed:", err);
     });
   });
