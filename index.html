@@ -1,5 +1,5 @@
 <!--
-Golf Score Pro - Version 13
+Golf Score Pro - Version 14
 Source baseline: GolfScorePro5.html
 Policy:
 - This file preserves current behavior.
@@ -13,7 +13,7 @@ Policy:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Golf Score Pro Version 13</title>
+<title>Golf Score Pro Version 14</title>
 
 <style>
 :root{
@@ -227,7 +227,7 @@ td,th{
 /* Hole / Par / Move block */
 .topBlock{
   max-width:760px;
-  margin:0 auto 8px;
+  margin:0 auto 24px;
   background:var(--panel);
   border:1px solid var(--line);
   border-radius:14px;
@@ -770,6 +770,92 @@ td,th{
   margin-top:10px;
 }
 
+
+.offlineMemoSummary{
+  cursor:pointer;
+  user-select:none;
+  margin-bottom:0;
+}
+.offlineMemoGroup[open] .offlineMemoSummary{
+  margin-bottom:8px;
+}
+
+.offlineMemoBox{
+  min-height:280px;
+  max-height:46vh;
+  line-height:1.6;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:16px;
+}
+.offlineMemoDisplay{
+  min-height:280px;
+  max-height:46vh;
+  overflow:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  line-height:1.6;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:16px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:var(--panel);
+  color:var(--text);
+  text-align:left;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+.offlineMemoDisplay:empty::before{
+  content:"タップして入力位置を選択";
+  color:var(--muted);
+}
+.offlineMemoSlot{
+  display:inline-block;
+  width:1.25em;
+  height:1.15em;
+  margin:0 2px -0.18em 2px;
+  border:1.5px dashed var(--muted);
+  border-radius:4px;
+  vertical-align:baseline;
+  opacity:.8;
+  pointer-events:none;
+}
+.offlineMemoCaret{
+  display:inline-block;
+  width:3px;
+  height:1.25em;
+  margin:0 1px -0.2em 1px;
+  background:currentColor;
+  vertical-align:baseline;
+  animation:offlineCaretBlink 1s steps(1,end) infinite;
+}
+@keyframes offlineCaretBlink{
+  0%,49%{opacity:1;}
+  50%,100%{opacity:0;}
+}
+.offlineMemoModeRow{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  margin:8px 0 2px;
+}
+.offlinePad{
+  display:grid;
+  grid-template-columns:repeat(6, minmax(0, 1fr));
+  gap:7px;
+  margin-top:10px;
+}
+.offlinePad button{
+  min-width:0;
+  padding:10px 4px;
+  font-weight:800;
+}
+.offlinePad .wide2{ grid-column:span 2; }
+@media (max-width:420px){
+  .offlinePad{ grid-template-columns:repeat(5, minmax(0, 1fr)); }
+}
+
 .subRow{
   background:var(--sum1);
   font-weight:700;
@@ -836,54 +922,6 @@ td,th{
   bottom:2px;
 }
 
-/* Global operation lock */
-.globalLockBtn{
-  position:fixed;
-  z-index:980;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
-  touch-action:none;
-  font-weight:800;
-  transition:all .18s ease;
-}
-.globalLockBtn.locked{
-  top:0;
-  left:0;
-  right:0;
-  width:100%;
-  min-height:44px;
-  border:0;
-  border-radius:0;
-  padding:calc(9px + env(safe-area-inset-top, 0px)) 12px 9px;
-  background:#c62828;
-  color:#fff;
-  box-shadow:0 3px 10px rgba(0,0,0,.28);
-  font-size:16px;
-}
-.globalLockBtn.unlocked{
-  top:calc(6px + env(safe-area-inset-top, 0px));
-  right:calc(6px + env(safe-area-inset-right, 0px));
-  width:36px;
-  min-width:36px;
-  height:36px;
-  min-height:36px;
-  padding:0;
-  border-radius:50%;
-  background:#2e7d32;
-  color:#fff;
-  border:1px solid #1b5e20;
-  box-shadow:0 2px 7px rgba(0,0,0,.24);
-  font-size:19px;
-  opacity:.92;
-}
-.globalLockBtn.arming{
-  background:#9b1c1c;
-  box-shadow:0 0 0 4px rgba(198,40,40,.25), 0 3px 10px rgba(0,0,0,.28);
-}
-#gameArea.globalLockedView{
-  padding-top:calc(44px + env(safe-area-inset-top, 0px));
-}
 
 /* Metric colors: Score=black, Putts=dark green, Olympic=dark red */
 .metricScore{ color:#111; }
@@ -1119,16 +1157,16 @@ td,th{
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Golf Score Pro">
-<link rel="manifest" href="manifest-v13.webmanifest">
-<link rel="apple-touch-icon" href="icons/icon-v13-192.png">
+<link rel="manifest" href="manifest-v14.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-v14-192.png">
 </head>
 <body>
 
-<h3>Golf Score Pro Version 13</h3>
+<h3>Golf Score Pro Version 14</h3>
 <div id="statusBar" class="statusBar"></div>
 
 <div id="setupArea">
-  <div class="screenTopBar"><button onclick="openSettingsPanel()">設定</button></div>
+  <div class="screenTopBar"><button onclick="openAiPanel()">AI連携</button><button onclick="openSettingsPanel()">設定</button></div>
   <div class="sectionCard">
     <h4>新規ラウンド作成</h4>
     ゴルフ場<br>
@@ -1163,10 +1201,7 @@ td,th{
     <input type="file" id="templateFileLoader" accept=".json,application/json" class="hidden" onchange="loadTemplateFromFile(event)">
 
     <h4>Par設定</h4>
-    <div class="note">ChatGPTで調べる場合は、現在の入力内容を使ってプロンプトをコピーできます。現地でスコアカードを見ながら直接入力しても構いません。</div>
-    <div class="parPrepActions">
-      <button onclick="generateParPromptAndCopy()">プロンプト生成＆コピー</button>
-          </div>
+    <div class="note">ChatGPTでParを調べる場合は、画面右下の「AI連携」からPar取得プロンプトをコピーできます。現地でスコアカードを見ながら直接入力しても構いません。</div>
     <div class="note">例: 4,4,3,5,4,4,5,3,4 4,5,4,3,4,4,3,5,4<br>前半と後半は空白または改行で区切れます。18個まとめて入力しても使えます。</div>
     <textarea id="parCsvInput" class="parPrepBox" placeholder="例: 4,4,3,5,4,4,5,3,4 4,5,4,3,4,4,3,5,4"></textarea>
     <div id="parPrepStatus" class="parPrepStatus"></div>
@@ -1189,13 +1224,8 @@ td,th{
 </div>
 
 <div id="gameArea" class="hidden">
-  <button id="globalLockBtn" class="globalLockBtn locked"
-          onpointerdown="beginGlobalUnlock(event)"
-          onpointerup="endGlobalUnlock(event)"
-          onpointercancel="cancelGlobalUnlock(event)"
-          onclick="handleGlobalLockClick(event)"
-          aria-label="操作ロック">🔒 操作ロック中（長押しで解除）</button>
   <div class="screenTopBar">
+    <button id="gameAiBtn" onclick="openAiPanel()">AI連携</button>
     <button id="gameSettingsBtn" onclick="openSettingsPanel()">設定</button>
   </div>
   <div id="roundTitle" class="roundTitle"></div>
@@ -1225,29 +1255,75 @@ td,th{
 </div>
 
 
+<div id="aiOverlay" class="settingsOverlay hidden" onclick="onAiOverlayClick(event)">
+  <div class="settingsModal" onclick="event.stopPropagation()">
+    <div class="settingsTitle">AI連携</div>
+    <div class="settingsGroup">
+      <div class="settingsGroupTitle">ChatGPTへ渡す</div>
+      <div class="settingsGroupNote">ラウンドの段階に応じてプロンプトをコピーします。</div>
+      <div class="settingsButtons">
+        <button id="aiParPromptBtn" onclick="generateParPromptAndCopy()">Par取得プロンプトをコピー</button>
+        <button id="aiVoicePromptBtn" onclick="generateVoiceRecordPromptAndCopy()">音声記録プロンプトをコピー</button>
+      </div>
+      <div id="aiContextNote" class="note" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="settingsGroup">
+      <div class="settingsGroupTitle">ChatGPTから戻す</div>
+      <div class="settingsGroupNote">ChatGPTが出力したGolfScorePro用JSONをそのまま貼り付けて読み込みます。ファイル化は読み込み後にGolfScoreProの「ファイル保存」で行えます。</div>
+      <textarea id="aiJsonInput" class="parPrepBox" placeholder="ここにGolfScorePro用JSONを貼り付け"></textarea>
+      <div class="settingsButtons">
+        <button class="primary" onclick="loadFromPastedJson()">JSONを読み込む</button>
+        <button onclick="clearAiJsonInput()">クリア</button>
+      </div>
+      <div id="aiJsonStatus" class="parPrepStatus"></div>
+    </div>
+
+
+    <details class="settingsGroup offlineMemoGroup">
+      <summary class="settingsGroupTitle offlineMemoSummary">オフラインメモ</summary>
+      <div class="settingsGroupNote">ChatGPTが使えない時の一時記録です。通常はSugarPadだけで入力し、必要な時だけ「編集」でソフトキーボード／音声入力を使えます。内容はこの端末に自動保存されます。</div>
+      <div id="offlineMemoDisplay" class="offlineMemoDisplay" role="textbox" aria-label="オフラインメモ SugarPad入力" onclick="offlineMemoSetCaretFromPoint(event)"></div>
+      <textarea id="offlineMemoInput" class="parPrepBox offlineMemoBox hidden" placeholder="非常用メモ"></textarea>
+      <div class="offlineMemoModeRow">
+        <button id="offlineMemoEditBtn" onclick="setOfflineMemoEditMode(true)">編集（KB/音声）</button>
+        <button id="offlineMemoPadBtn" class="primary hidden" onclick="setOfflineMemoEditMode(false)">SugarPadへ戻る</button>
+      </div>
+      <div id="offlinePad" class="offlinePad" aria-label="オフラインメモ入力パッド">
+        <button class="wide2" onclick="insertOfflineTemplate()">テンプレ</button>
+        <button onclick="insertOfflineMemoText('+')">+</button>
+        <button onclick="insertOfflineMemoText('-')">−</button>
+        <button onclick="offlineMemoBackspace()">BS</button>
+        <button onclick="insertOfflineMemoText('0')">0</button>
+        <button onclick="insertOfflineMemoText('1')">1</button>
+        <button onclick="insertOfflineMemoText('2')">2</button>
+        <button onclick="insertOfflineMemoText('3')">3</button>
+        <button onclick="insertOfflineMemoText('4')">4</button>
+        <button onclick="insertOfflineMemoText('5')">5</button>
+        <button onclick="insertOfflineMemoText('6')">6</button>
+        <button onclick="insertOfflineMemoText('7')">7</button>
+        <button onclick="insertOfflineMemoText('8')">8</button>
+        <button onclick="insertOfflineMemoText('9')">9</button>
+        <button onclick="insertOfflineMemoText('\n')">改行</button>
+      </div>
+      <div class="settingsGroupNote" style="margin-top:8px;">スコア表記: 0=Par、+n/−n=Par基準、符号なし1〜9=絶対打数。薄い枠は入力位置のガイドで、コピーされる文字には含まれません。</div>
+      <div class="settingsButtons">
+        <button class="primary" onclick="copyOfflineMemo()">メモをコピー</button>
+        <button onclick="clearOfflineMemo()">クリア</button>
+      </div>
+      <div id="offlineMemoStatus" class="parPrepStatus"></div>
+    </details>
+
+    <div class="settingsButtons">
+      <button onclick="closeAiPanel()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div id="settingsOverlay" class="settingsOverlay hidden" onclick="onSettingsOverlayClick(event)">
   <div class="settingsModal" onclick="event.stopPropagation()">
     <div class="settingsTitle">設定</div>
-    <div class="note">画面ロックと入力ボタンの設定を個別に調整できます。変更はすぐ反映されます。</div>
-
-    <div class="settingsGroup">
-      <div class="settingsGroupTitle">画面ロック</div>
-      <div class="settingsGroupNote">ポケット内などでの誤操作を防ぐための設定です。</div>
-      <div class="settingRows">
-        <div class="settingRow">
-          <div class="settingName">解除の長押し時間</div>
-          <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('globalHoldMs', -100)">−</button>
-          <div id="settingGlobalHoldValue" class="settingValue">1.0秒</div>
-          <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('globalHoldMs', 100)">+</button>
-        </div>
-        <div class="settingRow">
-          <div class="settingName">自動ロック時間</div>
-          <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('autoLockMs', -5000)">−</button>
-          <div id="settingAutoLockValue" class="settingValue">10.0秒</div>
-          <button class="small settingsAdjustBtn" onclick="adjustTimingSetting('autoLockMs', 5000)">+</button>
-        </div>
-      </div>
-    </div>
+    <div class="note">入力ボタンの誤変更防止とサイズを調整できます。ホール移動の診断ログもここで確認できます。</div>
 
     <div class="settingsGroup">
       <div class="settingsGroupTitle">入力ボタン</div>
@@ -1301,6 +1377,18 @@ td,th{
       </div>
     </div>
     </div>
+    <details class="settingsGroup">
+      <summary class="settingsGroupTitle">ホール移動 診断ログ</summary>
+      <div class="settingsGroupNote">原因調査用です。ホール移動とその直前のタッチ／クリック、入力直後のホール移動ガード発動を端末内に記録します。ホール飛びや不自然な移動があった後に「ログをコピー」を押してください。</div>
+      <textarea id="holeDiagLogView" class="parPrepBox" rows="10" readonly placeholder="診断ログはここに表示されます"></textarea>
+      <div class="settingsButtons">
+        <button class="primary" onclick="copyHoleDiagLog()">ログをコピー</button>
+        <button onclick="refreshHoleDiagLogView()">表示更新</button>
+        <button onclick="clearHoleDiagLog()">ログをクリア</button>
+      </div>
+      <div id="holeDiagStatus" class="parPrepStatus"></div>
+    </details>
+
     <div class="settingsButtons">
       <button onclick="resetTimingSettings()">初期値に戻す</button>
       <button class="primary" onclick="closeSettingsPanel()">閉じる</button>
@@ -1359,6 +1447,9 @@ const FORMAT_VERSION = 2;
 const AUTOSAVE_KEY = "golfScoreCurrentRound_final_v4";
 const HISTORY_KEY = "golfScoreHistory_final_v4";
 const UNSET = -1;
+const OFFLINE_MEMO_KEY = "golfScoreOfflineMemo_v1";
+const HOLE_DIAG_LOG_KEY = "golfScoreHoleDiagLog_v1";
+const HOLE_DIAG_MAX = 240;
 
 const PLAYER_NAMES_KEY = "golfScorePlayerNames_v1";
 const PLAYER_ACTION_NEW = "__new__";
@@ -1373,11 +1464,9 @@ let currentHole = 0;
 let selectedPlayerIndex = -1;
 const TIMING_SETTINGS_KEY = "golfScoreTimingSettings_v2";
 const defaultTimingSettings = {
-  globalHoldMs: 1000,
   holdMs: 600,
   activateDelayMs: 200,
   relockMs: 3000,
-  autoLockMs: 10000,
   stepperScale: 100
 };
 let timingSettings = loadTimingSettings();
@@ -1388,127 +1477,135 @@ let toastTimer = null;
 let loadedTemplate = null;
 let settingsTestValue = 4;
 
-let globalLocked = true;
-let globalUnlockTimer = null;
-let globalAutoLockTimer = null;
-let globalUnlockArmed = false;
-let globalUnlockPressing = false;
-let suppressGlobalLockClickUntil = 0;
 
-function updateGlobalLockVisual(){
-  const btn = document.getElementById("globalLockBtn");
-  if(!btn) return;
-  btn.classList.toggle("locked", globalLocked);
-  btn.classList.toggle("unlocked", !globalLocked);
-  btn.classList.toggle("arming", globalLocked && globalUnlockPressing);
-  const game = document.getElementById("gameArea");
-  if(game) game.classList.toggle("globalLockedView", globalLocked);
-  if(!globalLocked){
-    btn.textContent = "🔓";
-    btn.title = "タップでロック";
-    btn.setAttribute("aria-label", "操作可能。タップでロック");
-  }else if(globalUnlockPressing){
-    btn.textContent = "🔒 長押し中…";
-    btn.title = "そのまま長押ししてください";
-    btn.setAttribute("aria-label", "ロック解除のため長押し中");
-  }else{
-    btn.textContent = "🔒 操作ロック中（長押しで解除）";
-    btn.title = "長押しでロック解除";
-    btn.setAttribute("aria-label", "操作ロック中。長押しで解除");
-  }
+function holeDiagLoad(){
+  try{
+    const v = JSON.parse(localStorage.getItem(HOLE_DIAG_LOG_KEY) || "[]");
+    return Array.isArray(v) ? v : [];
+  }catch(e){ return []; }
 }
 
-function clearGlobalUnlockTimer(){
-  if(globalUnlockTimer){ clearTimeout(globalUnlockTimer); globalUnlockTimer = null; }
+function holeDiagTarget(target){
+  if(!target || !target.closest) return "";
+  const el = target.closest("button, [role='button'], .diagBtn, .holeSvgBtn, .playerValueRow, #gameArea, svg") || target;
+  const tag = (el.tagName || "").toLowerCase();
+  const id = el.id ? `#${el.id}` : "";
+  const cls = typeof el.className === "string" && el.className ? "." + el.className.trim().split(/\s+/).slice(0,3).join(".") : "";
+  const aria = el.getAttribute?.("aria-label") || "";
+  const text = (el.textContent || "").replace(/\s+/g," ").trim().slice(0,40);
+  return `${tag}${id}${cls}${aria ? ` [${aria}]` : ""}${text ? ` {${text}}` : ""}`;
 }
 
-function clearGlobalAutoLockTimer(){
-  if(globalAutoLockTimer){ clearTimeout(globalAutoLockTimer); globalAutoLockTimer = null; }
+function holeDiagLog(kind, extra={}){
+  try{
+    const logs = holeDiagLoad();
+    logs.push({
+      t:new Date().toISOString(),
+      ms:Math.round(performance.now()),
+      kind,
+      hole:Number.isInteger(currentHole) ? currentHole + 1 : currentHole,
+      selected:Number.isInteger(selectedPlayerIndex) ? selectedPlayerIndex : -1,
+      locked:false,
+      ...extra
+    });
+    if(logs.length > HOLE_DIAG_MAX) logs.splice(0, logs.length - HOLE_DIAG_MAX);
+    localStorage.setItem(HOLE_DIAG_LOG_KEY, JSON.stringify(logs));
+  }catch(e){}
 }
 
-function setGlobalLocked(locked, showMessage=true){
-  globalLocked = !!locked;
-  globalUnlockArmed = false;
-  globalUnlockPressing = false;
-  clearGlobalUnlockTimer();
-  clearGlobalAutoLockTimer();
-  updateGlobalLockVisual();
-  if(!globalLocked) scheduleGlobalAutoLock();
-}
-
-function scheduleGlobalAutoLock(){
-  clearGlobalAutoLockTimer();
-  if(globalLocked) return;
-  globalAutoLockTimer = setTimeout(() => setGlobalLocked(true, true), timingSettings.autoLockMs);
-}
-
-function noteGlobalActivity(){
-  if(!globalLocked) scheduleGlobalAutoLock();
-}
-
-function beginGlobalUnlock(event){
-  if(!globalLocked) return;
-  clearGlobalUnlockTimer();
-  globalUnlockArmed = false;
-  globalUnlockPressing = true;
-  updateGlobalLockVisual();
-  if(event?.currentTarget?.setPointerCapture && event.pointerId != null){
-    try{ event.currentTarget.setPointerCapture(event.pointerId); }catch(_e){}
-  }
-  globalUnlockTimer = setTimeout(() => {
-    globalUnlockTimer = null;
-    globalUnlockArmed = true;
-    // 長押し成立時点で解除を確定する。指を離した際のclickは十分長く抑止する。
-    suppressGlobalLockClickUntil = Date.now() + 1200;
-    setGlobalLocked(false, true);
-    if(navigator.vibrate) navigator.vibrate(35);
-  }, timingSettings.globalHoldMs);
-}
-
-function endGlobalUnlock(event){
-  clearGlobalUnlockTimer();
-  globalUnlockPressing = false;
-  if(event?.currentTarget?.releasePointerCapture && event.pointerId != null){
-    try{ if(event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }catch(_e){}
-  }
-  // 解除は長押し成立時点ですでに完了している。ここでは表示だけ整える。
-  updateGlobalLockVisual();
-}
-
-function cancelGlobalUnlock(){
-  clearGlobalUnlockTimer();
-  globalUnlockArmed = false;
-  globalUnlockPressing = false;
-  updateGlobalLockVisual();
-}
-
-function handleGlobalLockClick(event){
-  event?.preventDefault();
-  event?.stopPropagation();
-  if(Date.now() < suppressGlobalLockClickUntil) return;
-  if(!globalLocked) setGlobalLocked(true, true);
-  else showToast("長押しでロック解除");
-}
-
-function installGlobalLockGuards(){
-  const game = document.getElementById("gameArea");
-  if(!game || game.dataset.lockGuardInstalled === "1") return;
-  game.dataset.lockGuardInstalled = "1";
-  const isExempt = target => !!target?.closest?.("#globalLockBtn, #gameSettingsBtn, .settingsOverlay");
-  ["pointerdown", "click"].forEach(type => {
-    game.addEventListener(type, event => {
-      if(globalLocked && !isExempt(event.target)){
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        if(type === "click") showToast("長押しでロック解除");
-      }
-    }, true);
+function holeDiagEvent(event){
+  const target = event.target;
+  if(!target?.closest?.("#gameArea")) return;
+  const relevant = target.closest("button, [role='button'], .diagBtn, .holeSvgBtn, .playerValueRow");
+  if(!relevant) return;
+  holeDiagLog(`EVENT_${String(event.type).toUpperCase()}`, {
+    target:holeDiagTarget(target),
+    pointerType:event.pointerType || "",
+    pointerId:Number.isFinite(event.pointerId) ? event.pointerId : null,
+    x:Number.isFinite(event.clientX) ? Math.round(event.clientX) : null,
+    y:Number.isFinite(event.clientY) ? Math.round(event.clientY) : null,
+    buttons:Number.isFinite(event.buttons) ? event.buttons : null
   });
-  game.addEventListener("click", event => {
-    if(!globalLocked && !isExempt(event.target)) noteGlobalActivity();
-  }, true);
 }
 
+document.addEventListener("pointerdown", holeDiagEvent, true);
+document.addEventListener("pointerup", holeDiagEvent, true);
+document.addEventListener("click", holeDiagEvent, true);
+
+// Hole move guard: suppress a navigation click that occurs immediately after
+// an input-area touch/re-render. This targets ghost-click-like event leakage
+// without changing normal score/putt/olympic input behavior.
+const HOLE_MOVE_GUARD_MS = 550;
+let holeMoveGuardUntil = 0;
+let holeMoveGuardReason = "";
+
+function armHoleMoveGuard(reason, event){
+  const now = performance.now();
+  holeMoveGuardUntil = Math.max(holeMoveGuardUntil, now + HOLE_MOVE_GUARD_MS);
+  holeMoveGuardReason = reason || "input";
+  holeDiagLog("HOLE_GUARD_ARM", {
+    reason:holeMoveGuardReason,
+    untilMs:Math.round(holeMoveGuardUntil),
+    pointerType:event?.pointerType || "",
+    pointerId:Number.isFinite(event?.pointerId) ? event.pointerId : null,
+    x:Number.isFinite(event?.clientX) ? Math.round(event.clientX) : null,
+    y:Number.isFinite(event?.clientY) ? Math.round(event.clientY) : null
+  });
+}
+
+function isHoleMoveGuardActive(){
+  return performance.now() < holeMoveGuardUntil;
+}
+
+function blockHoleMoveIfGuarded(source, toHole){
+  if(!isHoleMoveGuardActive()) return false;
+  holeDiagLog("HOLE_MOVE_BLOCKED", {
+    source,
+    from:Number.isInteger(currentHole) ? currentHole + 1 : currentHole,
+    to:Number.isInteger(toHole) ? toHole + 1 : toHole,
+    reason:holeMoveGuardReason,
+    remainingMs:Math.max(0, Math.round(holeMoveGuardUntil - performance.now()))
+  });
+  return true;
+}
+
+function holeGuardInputEvent(event){
+  const target = event.target;
+  if(!target?.closest?.("#inputArea")) return;
+  armHoleMoveGuard(`inputArea:${event.type}`, event);
+}
+
+document.addEventListener("pointerdown", holeGuardInputEvent, true);
+document.addEventListener("pointerup", holeGuardInputEvent, true);
+
+function holeDiagText(){
+  return holeDiagLoad().map((r,i) => `${String(i+1).padStart(3,"0")} ${JSON.stringify(r)}`).join("\n");
+}
+
+function refreshHoleDiagLogView(){
+  const el = document.getElementById("holeDiagLogView");
+  if(el) el.value = holeDiagText();
+}
+
+async function copyHoleDiagLog(){
+  const text = holeDiagText();
+  const status = document.getElementById("holeDiagStatus");
+  if(!text){
+    if(status){ status.textContent = "ログはまだありません。"; status.className = "parPrepStatus ng"; }
+    return;
+  }
+  const ok = await copyText(text);
+  if(status){ status.textContent = ok ? "診断ログをコピーしました。" : "コピーできませんでした。"; status.className = `parPrepStatus ${ok ? "ok" : "ng"}`; }
+  refreshHoleDiagLogView();
+}
+
+function clearHoleDiagLog(){
+  if(!confirm("ホール移動の診断ログを消去しますか？")) return;
+  try{ localStorage.removeItem(HOLE_DIAG_LOG_KEY); }catch(e){}
+  refreshHoleDiagLogView();
+  const status = document.getElementById("holeDiagStatus");
+  if(status){ status.textContent = "診断ログを消去しました。"; status.className = "parPrepStatus ok"; }
+}
 
 function normalizePlayerName(raw){
   return String(raw || "").trim().replace(/\s+/g, " ").slice(0, 20);
@@ -1676,11 +1773,9 @@ function loadTimingSettings(){
   try{
     const raw = JSON.parse(localStorage.getItem(TIMING_SETTINGS_KEY) || "{}");
     return {
-      globalHoldMs: clamp(Number(raw.globalHoldMs) || defaultTimingSettings.globalHoldMs, 600, 2000),
       holdMs: clamp(Number(raw.holdMs) || defaultTimingSettings.holdMs, 300, 1200),
       activateDelayMs: clamp(Number(raw.activateDelayMs) || defaultTimingSettings.activateDelayMs, 0, 800),
       relockMs: clamp(Number(raw.relockMs) || defaultTimingSettings.relockMs, 1000, 6000),
-      autoLockMs: clamp(Number(raw.autoLockMs) || defaultTimingSettings.autoLockMs, 5000, 60000),
       stepperScale: clamp(Number(raw.stepperScale) || defaultTimingSettings.stepperScale, 80, 140)
     };
   }catch(e){
@@ -1705,17 +1800,13 @@ function formatPercentLabel(value){
 }
 
 function renderTimingSettingsPanel(){
-  const globalHoldEl = document.getElementById("settingGlobalHoldValue");
   const holdEl = document.getElementById("settingHoldValue");
   const actEl = document.getElementById("settingActivateValue");
   const relockEl = document.getElementById("settingRelockValue");
-  const autoLockEl = document.getElementById("settingAutoLockValue");
   const scaleEl = document.getElementById("settingStepperScaleValue");
-  if(globalHoldEl) globalHoldEl.textContent = formatSecondsLabel(timingSettings.globalHoldMs);
   if(holdEl) holdEl.textContent = formatSecondsLabel(timingSettings.holdMs);
   if(actEl) actEl.textContent = formatSecondsLabel(timingSettings.activateDelayMs);
   if(relockEl) relockEl.textContent = formatSecondsLabel(timingSettings.relockMs);
-  if(autoLockEl) autoLockEl.textContent = formatSecondsLabel(timingSettings.autoLockMs);
   if(scaleEl) scaleEl.textContent = formatPercentLabel(timingSettings.stepperScale);
   const testVal = document.getElementById("settingsTestValue");
   if(testVal) testVal.textContent = String(settingsTestValue);
@@ -1730,11 +1821,9 @@ function resetAllProtectedControls(){
 
 function adjustTimingSetting(name, delta){
   const conf = {
-    globalHoldMs: { min: 600, max: 2000, step: 100, kind: "globalLock" },
     holdMs: { min: 300, max: 1200, step: 100, kind: "timing" },
     activateDelayMs: { min: 0, max: 800, step: 50, kind: "timing" },
     relockMs: { min: 1000, max: 6000, step: 500, kind: "timing" },
-    autoLockMs: { min: 5000, max: 60000, step: 5000, kind: "autoLock" },
     stepperScale: { min: 80, max: 140, step: 5, kind: "scale" }
   }[name];
   if(!conf) return;
@@ -1745,12 +1834,7 @@ function adjustTimingSetting(name, delta){
   if(conf.kind === "scale"){
     applyStepperScale();
     renderHole();
-  }else if(conf.kind === "autoLock"){
-    scheduleGlobalAutoLock();
-  }else if(conf.kind === "globalLock"){
-    clearGlobalUnlockTimer();
-    globalUnlockPressing = false;
-    updateGlobalLockVisual();
+
   }else{
     resetAllProtectedControls();
   }
@@ -1761,10 +1845,339 @@ function resetTimingSettings(){
   timingSettings = { ...defaultTimingSettings };
   saveTimingSettings();
   applyStepperScale();
-  scheduleGlobalAutoLock();
   resetAllProtectedControls();
   renderHole();
   renderTimingSettingsPanel();
+}
+
+function isGameActive(){
+  const gameArea = document.getElementById("gameArea");
+  return !!gameArea && !gameArea.classList.contains("hidden");
+}
+
+
+let offlineMemoCaretPos = 0;
+let offlineMemoEditMode = false;
+
+function clampOfflineMemoCaret(){
+  const input = document.getElementById("offlineMemoInput");
+  const len = input ? input.value.length : 0;
+  offlineMemoCaretPos = Math.max(0, Math.min(len, Number.isFinite(offlineMemoCaretPos) ? offlineMemoCaretPos : len));
+}
+
+function getOfflineMemoSlotPositions(text){
+  const positions = [];
+  let base = 0;
+  const lines = String(text).split("\n");
+  for(const line of lines){
+    // テンプレの実データには空欄記号を入れず、未入力箇所だけ表示上のガイドを出す。
+    if(line === "ホール: ") positions.push(base + line.length);
+
+    const scoreMarker = "スコア:  パット:";
+    const scoreIdx = line.indexOf(scoreMarker);
+    if(scoreIdx >= 0) positions.push(base + scoreIdx + "スコア: ".length);
+
+    const puttMarker = "パット:  オリンピック:";
+    const puttIdx = line.indexOf(puttMarker);
+    if(puttIdx >= 0) positions.push(base + puttIdx + "パット: ".length);
+
+    if(line.endsWith("オリンピック: ")) positions.push(base + line.length);
+    base += line.length + 1;
+  }
+  return [...new Set(positions)].sort((a,b)=>a-b);
+}
+
+function renderOfflineMemoDisplay(){
+  const input = document.getElementById("offlineMemoInput");
+  const display = document.getElementById("offlineMemoDisplay");
+  if(!input || !display) return;
+  clampOfflineMemoCaret();
+  display.replaceChildren();
+
+  const text = input.value;
+  const slots = getOfflineMemoSlotPositions(text);
+  const events = [];
+  slots.forEach(pos => events.push({pos, type:"slot"}));
+  events.push({pos:offlineMemoCaretPos, type:"caret"});
+  events.sort((a,b) => a.pos - b.pos || (a.type === "slot" ? -1 : 1));
+
+  let cursor = 0;
+  for(const ev of events){
+    const pos = Math.max(cursor, Math.min(text.length, ev.pos));
+    if(pos > cursor) display.append(document.createTextNode(text.slice(cursor, pos)));
+    if(ev.type === "slot"){
+      const slot = document.createElement("span");
+      slot.className = "offlineMemoSlot";
+      slot.setAttribute("aria-hidden", "true");
+      display.append(slot);
+    }else{
+      const caret = document.createElement("span");
+      caret.className = "offlineMemoCaret";
+      caret.setAttribute("aria-hidden", "true");
+      display.append(caret);
+    }
+    cursor = pos;
+  }
+  if(cursor < text.length) display.append(document.createTextNode(text.slice(cursor)));
+}
+
+function offlineMemoSetCaretFromPoint(event){
+  if(offlineMemoEditMode) return;
+  const display = document.getElementById("offlineMemoDisplay");
+  const input = document.getElementById("offlineMemoInput");
+  if(!display || !input) return;
+  let node = null, offset = 0;
+  if(document.caretPositionFromPoint){
+    const pos = document.caretPositionFromPoint(event.clientX, event.clientY);
+    if(pos){ node = pos.offsetNode; offset = pos.offset; }
+  }else if(document.caretRangeFromPoint){
+    const range = document.caretRangeFromPoint(event.clientX, event.clientY);
+    if(range){ node = range.startContainer; offset = range.startOffset; }
+  }
+  if(node && display.contains(node)){
+    const r = document.createRange();
+    r.selectNodeContents(display);
+    try{
+      r.setEnd(node, offset);
+      offlineMemoCaretPos = r.toString().length;
+    }catch(e){
+      offlineMemoCaretPos = input.value.length;
+    }
+  }else{
+    offlineMemoCaretPos = input.value.length;
+  }
+  clampOfflineMemoCaret();
+  renderOfflineMemoDisplay();
+}
+
+function setOfflineMemoEditMode(enabled){
+  const input = document.getElementById("offlineMemoInput");
+  const display = document.getElementById("offlineMemoDisplay");
+  const pad = document.getElementById("offlinePad");
+  const editBtn = document.getElementById("offlineMemoEditBtn");
+  const padBtn = document.getElementById("offlineMemoPadBtn");
+  if(!input || !display) return;
+  const wasEditing = offlineMemoEditMode;
+  offlineMemoEditMode = !!enabled;
+  if(offlineMemoEditMode){
+    display.classList.add("hidden");
+    input.classList.remove("hidden");
+    if(pad) pad.classList.add("hidden");
+    if(editBtn) editBtn.classList.add("hidden");
+    if(padBtn) padBtn.classList.remove("hidden");
+    input.focus();
+    const p = Math.max(0, Math.min(input.value.length, offlineMemoCaretPos));
+    try{ input.setSelectionRange(p, p); }catch(e){}
+  }else{
+    if(wasEditing){
+      offlineMemoCaretPos = Number.isInteger(input.selectionStart) ? input.selectionStart : input.value.length;
+    }
+    input.blur();
+    input.classList.add("hidden");
+    display.classList.remove("hidden");
+    if(pad) pad.classList.remove("hidden");
+    if(editBtn) editBtn.classList.remove("hidden");
+    if(padBtn) padBtn.classList.add("hidden");
+    saveOfflineMemo();
+    renderOfflineMemoDisplay();
+  }
+}
+
+function setOfflineMemoStatus(message, ok=false){
+  const el = document.getElementById("offlineMemoStatus");
+  if(!el) return;
+  el.className = "parPrepStatus " + (ok ? "ok" : "ng");
+  el.textContent = message || "";
+}
+
+function loadOfflineMemo(){
+  const input = document.getElementById("offlineMemoInput");
+  if(!input) return;
+  try{
+    input.value = localStorage.getItem(OFFLINE_MEMO_KEY) || "";
+  }catch(e){
+    input.value = "";
+  }
+  offlineMemoCaretPos = input.value.length;
+  renderOfflineMemoDisplay();
+}
+
+function saveOfflineMemo(){
+  const input = document.getElementById("offlineMemoInput");
+  if(!input) return;
+  try{ localStorage.setItem(OFFLINE_MEMO_KEY, input.value); }catch(e){}
+  if(!offlineMemoEditMode) renderOfflineMemoDisplay();
+}
+
+function insertOfflineMemoText(text){
+  const input = document.getElementById("offlineMemoInput");
+  if(!input) return;
+  const value = input.value;
+  const insert = String(text);
+  clampOfflineMemoCaret();
+  input.value = value.slice(0, offlineMemoCaretPos) + insert + value.slice(offlineMemoCaretPos);
+  offlineMemoCaretPos += insert.length;
+  saveOfflineMemo();
+  renderOfflineMemoDisplay();
+  setOfflineMemoStatus("");
+}
+
+function offlineMemoBackspace(){
+  const input = document.getElementById("offlineMemoInput");
+  if(!input) return;
+  clampOfflineMemoCaret();
+  if(offlineMemoCaretPos > 0){
+    input.value = input.value.slice(0, offlineMemoCaretPos - 1) + input.value.slice(offlineMemoCaretPos);
+    offlineMemoCaretPos -= 1;
+  }
+  saveOfflineMemo();
+  renderOfflineMemoDisplay();
+  setOfflineMemoStatus("");
+}
+
+function offlineMemoPlayerNames(){
+  if(isGameActive() && Array.isArray(playerNames) && playerNames.length){
+    return playerNames.slice(0, players).filter(Boolean);
+  }
+  try{
+    const info = getDraftRoundInfo();
+    if(info && Array.isArray(info.playerNames)) return info.playerNames.filter(Boolean);
+  }catch(e){}
+  return [];
+}
+
+function insertOfflineTemplate(){
+  const names = offlineMemoPlayerNames();
+  if(!names.length){
+    setOfflineMemoStatus("プレイヤー名を設定してからテンプレを挿入してください。", false);
+    return;
+  }
+  const lines = ["ホール: ", ...names.map(name => `${name} スコア:  パット:  オリンピック: `)];
+  const input = document.getElementById("offlineMemoInput");
+  if(!input) return;
+  const prefix = input.value && !input.value.endsWith("\n") ? "\n\n" : (input.value ? "\n" : "");
+  insertOfflineMemoText(prefix + lines.join("\n"));
+}
+
+async function copyOfflineMemo(){
+  const input = document.getElementById("offlineMemoInput");
+  const text = input ? input.value.trim() : "";
+  if(!text){
+    setOfflineMemoStatus("コピーするメモがありません。", false);
+    return;
+  }
+  const ok = await copyText(text);
+  if(ok){
+    setOfflineMemoStatus("メモをコピーしました。", true);
+    showToast("オフラインメモをコピーしました");
+  }else{
+    setOfflineMemoStatus("コピーに失敗しました。", false);
+  }
+}
+
+function clearOfflineMemo(){
+  const input = document.getElementById("offlineMemoInput");
+  if(!input) return;
+  if(input.value && !confirm("オフラインメモをすべて消しますか？")) return;
+  input.value = "";
+  offlineMemoCaretPos = 0;
+  saveOfflineMemo();
+  renderOfflineMemoDisplay();
+  setOfflineMemoStatus("メモをクリアしました。", true);
+}
+
+function setAiJsonStatus(message, ok=false){
+  const el = document.getElementById("aiJsonStatus");
+  if(!el) return;
+  el.className = "parPrepStatus " + (ok ? "ok" : "ng");
+  el.textContent = message || "";
+}
+
+function updateAiPanelContext(){
+  const active = isGameActive();
+  const parBtn = document.getElementById("aiParPromptBtn");
+  const voiceBtn = document.getElementById("aiVoicePromptBtn");
+  const note = document.getElementById("aiContextNote");
+  if(parBtn) parBtn.disabled = active;
+  if(voiceBtn) voiceBtn.disabled = !active;
+  if(note){
+    note.textContent = active
+      ? "ラウンド中：音声記録プロンプトとJSON貼り付け読込を利用できます。Par取得は新規ラウンド作成時に利用してください。"
+      : "ラウンド作成中：Par取得プロンプトとJSON貼り付け読込を利用できます。音声記録プロンプトはラウンド開始後に利用できます。";
+  }
+}
+
+function openAiPanel(){
+  const overlay = document.getElementById("aiOverlay");
+  if(!overlay) return;
+  updateAiPanelContext();
+  setAiJsonStatus("");
+  setOfflineMemoStatus("");
+  loadOfflineMemo();
+  const memo = document.getElementById("offlineMemoInput");
+  if(memo && memo.dataset.autosaveBound !== "1"){
+    memo.addEventListener("input", () => {
+      offlineMemoCaretPos = Number.isInteger(memo.selectionStart) ? memo.selectionStart : memo.value.length;
+      saveOfflineMemo();
+    });
+    memo.dataset.autosaveBound = "1";
+  }
+  setOfflineMemoEditMode(false);
+  overlay.classList.remove("hidden");
+}
+
+function closeAiPanel(){
+  const overlay = document.getElementById("aiOverlay");
+  if(!overlay) return;
+  const memo = document.getElementById("offlineMemoInput");
+  if(memo) memo.blur();
+  offlineMemoEditMode = false;
+  overlay.classList.add("hidden");
+}
+
+function onAiOverlayClick(event){
+  if(event.target && event.target.id === "aiOverlay") closeAiPanel();
+}
+
+function clearAiJsonInput(){
+  const input = document.getElementById("aiJsonInput");
+  if(input) input.value = "";
+  setAiJsonStatus("");
+}
+
+function extractJsonText(raw){
+  let text = String(raw || "").trim();
+  if(!text) return "";
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(fenced) text = fenced[1].trim();
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if(first >= 0 && last > first) text = text.slice(first, last + 1);
+  return text.trim();
+}
+
+function loadFromPastedJson(){
+  const input = document.getElementById("aiJsonInput");
+  const text = extractJsonText(input ? input.value : "");
+  if(!text){
+    setAiJsonStatus("JSONを貼り付けてください。", false);
+    return;
+  }
+  try{
+    const obj = JSON.parse(text);
+    const ok = loadStateObject(obj);
+    if(!ok){
+      setAiJsonStatus("GolfScorePro用データとして読み込めませんでした。", false);
+      return;
+    }
+    if(input) input.value = "";
+    closeAiPanel();
+    updateStatus("ChatGPTのJSONデータを読み込みました");
+    showToast("JSONデータを読み込みました");
+  }catch(e){
+    console.error(e);
+    setAiJsonStatus("JSONの形式を確認してください。", false);
+  }
 }
 
 function openSettingsPanel(){
@@ -1964,7 +2377,12 @@ function loadStateObject(state){
 
   data = state.data.map(hole => normalizeHoleFromState(hole, players, isLegacy));
   loadedTemplate = null;
-  currentHole = Number.isInteger(state.currentHole) ? Math.min(17, Math.max(0, state.currentHole)) : 0;
+  {
+    const fromHole = currentHole;
+    const nextHole = Number.isInteger(state.currentHole) ? Math.min(17, Math.max(0, state.currentHole)) : 0;
+    holeDiagLog("LOAD_STATE_HOLE", {from:Number.isInteger(fromHole) ? fromHole + 1 : fromHole, to:nextHole + 1, sourceCurrentHole:state.currentHole});
+    currentHole = nextHole;
+  }
   selectedPlayerIndex = -1;
   scoreMode = state.scoreMode === "abs" ? "abs" : "diff";
 
@@ -1981,8 +2399,6 @@ function loadStateObject(state){
     (state.courseName || "") + "  " + (state.playDate || "");
 
   updateScoreModeToggle();
-  installGlobalLockGuards();
-  setGlobalLocked(true, false);
   renderHole();
   saveCurrentRound();
   return true;
@@ -2349,6 +2765,7 @@ function startGame(){
   playerNames = info.playerNames.slice();
   players = info.players;
   data = makeInitialData(players);
+  holeDiagLog("NEW_ROUND_HOLE", {from:Number.isInteger(currentHole) ? currentHole + 1 : currentHole, to:1});
   currentHole = 0;
   selectedPlayerIndex = -1;
   scoreMode = "diff";
@@ -2358,8 +2775,6 @@ function startGame(){
   document.getElementById("roundTitle").innerText = info.courseName + "  " + info.playDate;
 
   updateScoreModeToggle();
-  installGlobalLockGuards();
-  setGlobalLocked(true, false);
   renderHole();
   saveCurrentRound();
   updateStatus("新しいラウンドを開始しました");
@@ -3031,6 +3446,7 @@ function disabledMetricMiniHtml(label){
 
 function handlePlayerRowTap(playerIndex){
   if(!Number.isInteger(playerIndex) || playerIndex < 0 || playerIndex >= players) return;
+  holeDiagLog("PLAYER_SELECT", {player:playerIndex, name:playerNames[playerIndex] || ""});
   selectedPlayerIndex = selectedPlayerIndex === playerIndex ? -1 : playerIndex;
   renderHole();
   showToast(selectedPlayerIndex >= 0 ? `${playerNames[selectedPlayerIndex]}を選択しました` : "プレイヤー選択を解除しました");
@@ -3147,6 +3563,7 @@ function getPredictedPutt(playerIndex){
 }
 
 function chg(p, type, delta){
+  holeDiagLog("INPUT_CHG", {player:p, name:playerNames[p] || "", metric:type, delta});
   if(!isDiagEditEnabled(p, type)){
     showToast("長押しで変更を有効化");
     return;
@@ -3212,6 +3629,9 @@ function chgPar(delta){
 
 function goHole(index){
   if(index < 0 || index > 17) return;
+  const fromHole = currentHole;
+  if(blockHoleMoveIfGuarded("goHole", index)) return;
+  holeDiagLog("GO_HOLE", {from:fromHole + 1, to:index + 1, stack:(new Error().stack || "").split("\n").slice(1,5).join(" | ")});
   currentHole = index;
   selectedPlayerIndex = -1;
   renderHole();
@@ -3219,7 +3639,11 @@ function goHole(index){
 }
 
 function goNextHole(){
-  currentHole = (currentHole + 1) % 18;
+  const fromHole = currentHole;
+  const toHole = (currentHole + 1) % 18;
+  if(blockHoleMoveIfGuarded("goNextHole", toHole)) return;
+  holeDiagLog("GO_NEXT_HOLE", {from:fromHole + 1, to:toHole + 1, stack:(new Error().stack || "").split("\n").slice(1,5).join(" | ")});
+  currentHole = toHole;
   selectedPlayerIndex = players > 0 ? 0 : -1;
   renderHole();
   saveCurrentRound();
@@ -3301,6 +3725,7 @@ function onHoleShiftOverlayClick(event){
 
 function shiftPlayDataEarlier(){
   const start = currentHole;
+  holeDiagLog("SHIFT_DATA_EARLIER_REQUEST", {base:start + 1});
   if(start >= 17){
     alert("18番ホールでは前へずらす対象がありません");
     return;
@@ -3327,6 +3752,7 @@ function shiftPlayDataEarlier(){
 
 function shiftPlayDataLater(){
   const start = currentHole;
+  holeDiagLog("SHIFT_DATA_LATER_REQUEST", {base:start + 1});
   const last = lastEnteredHoleFrom(start);
   if(last < 0){
     alert("このホール以降に移動できる入力データがありません");
@@ -3950,7 +4376,12 @@ function swapFrontBackDuringPlay(){
   }
 
   data = data.slice(9).concat(data.slice(0, 9));
-  currentHole = Number.isInteger(currentHole) ? ((currentHole + 9) % 18) : 0;
+  {
+    const fromHole = currentHole;
+    const nextHole = Number.isInteger(currentHole) ? ((currentHole + 9) % 18) : 0;
+    holeDiagLog("SWAP_FRONT_BACK_HOLE", {from:Number.isInteger(fromHole) ? fromHole + 1 : fromHole, to:nextHole + 1});
+    currentHole = nextHole;
+  }
   selectedPlayerIndex = -1;
 
   const courseName = document.getElementById("courseName").value || "";
@@ -4200,10 +4631,148 @@ async function generateParPromptAndCopy(){
   const ok = await copyText(prompt);
   if(ok){
     setParPrepStatus("プロンプトがコピーバッファに取り込まれました。", true);
-    showToast("プロンプトをコピーしました");
+    closeAiPanel();
+    showToast("Par取得プロンプトをコピーしました");
   }else{
     setParPrepStatus("コピーに失敗しました。もう一度お試しください。", false);
     alert("コピーに失敗しました");
+  }
+}
+
+function buildVoiceRecordPrompt(state){
+  const parList = state.data.map(hole => hole.par);
+  const playerList = state.playerNames.map((name, index) => `${index+1}. ${name}`).join("\n");
+  const parFront = parList.slice(0, 9).join(",");
+  const parBack = parList.slice(9, 18).join(",");
+
+  return `これからゴルフのラウンド中、私が音声で伝えるスコア情報を記録してください。
+この会話はGolfScorePro Version 14への入力データ作成用です。
+
+【ラウンド情報】
+- ゴルフ場: ${state.courseName}
+- 日付: ${state.playDate}
+- 前半コース: ${state.frontCourseName}
+- 後半コース: ${state.backCourseName}
+- プレイヤー人数: ${state.players}
+- プレイヤー:
+${playerList}
+
+【ホールPar】
+- 前半1〜9番: ${parFront}
+- 後半10〜18番: ${parBack}
+
+【記録する項目】
+各ホール・各プレイヤーについて、次の3項目を記録してください。
+- Score: 実際の打数。Parとの差ではなく絶対打数で記録する。
+- Putts: パット数。
+- Olympic: オリンピック得点。
+
+【音声記録モード】
+この会話には「待機状態」と「記録状態」の2つの状態があります。
+- 開始時は待機状態です。
+- 私が「スコア開始」と言ったら記録状態へ切り替えてください。
+- 私が「スコア終了」と言ったら待機状態へ戻ってください。
+- 待機状態では、周囲の会話・環境音・衣擦れなどをGolfScoreの記録として扱わないでください。
+- 待機状態では原則として応答せず、「スコア開始」が聞こえるまで待機してください。
+- 「GolfScore用データを出力して」という指示は、待機状態・記録状態のどちらでも受け付けてください。
+- 互換性のため「GolfScore用ファイルを作成して」と言った場合も同じJSON出力指示として扱ってください。
+- 「スコア開始」「スコア終了」はGolfScoreの記録データそのものには含めないでください。
+
+【記録状態での会話ルール】
+1. 私は自然な日本語で、ホール番号、プレイヤー名、Score、Putts、Olympicを伝えます。
+2. 一度に全部を言わず、一部だけ伝える場合があります。判明した項目だけ更新してください。
+3. 同じ項目を後から訂正した場合は、最新の値で上書きしてください。
+4. 文脈から対象ホールやプレイヤーが明確なら、その文脈を維持してください。
+5. 情報が十分で矛盾がなければ、通常の返答は簡潔に「OKです」としてください。
+6. 対象ホール・プレイヤー・項目・数値が曖昧、または既存記録と矛盾していて訂正かどうか判断できない場合だけ、その場で確認してください。
+7. 推測で数値を補わないでください。
+8. 未入力の項目は未入力のまま保持してください。
+9. 「スコア終了」を受け取ったら、その時点までの記録を保持したまま待機状態へ戻ってください。
+
+【オフラインメモを貼り付けた場合】
+GolfScoreProのオフラインメモを貼り付ける場合があります。次の略記をスコアとして解釈してください。
+- 「ホール:」の後の数字を対象ホール番号として扱う。
+- 「スコア:」の 0 はPar。
+- 「スコア:」の +n / -n はPar基準の差。例: +1=ボギー、+2=ダブルボギー、-1=バーディ、-2=イーグル。
+- 「スコア:」の符号なし1〜9は絶対打数。
+- 「パット:」の後の数字はPutts、「オリンピック:」の後の数字はOlympic。
+- 値が空欄の項目は未入力として扱い、推測で補わない。
+- 複数ホール分が貼り付けられた場合は、各「ホール:」の行を区切りとして反映する。
+
+【GolfScorePro用JSON出力】
+私が「GolfScore用データを出力して」と言ったら、以下の仕様でGolfScoreProへ貼り付けできるJSONテキストを作成してください。
+「GolfScore用ファイルを作成して」と言った場合も同様に処理してください。
+JSON以外の説明文・前置き・後書きは付けないでください。可能ならMarkdownのコードフェンスも付けず、JSONオブジェクトだけを出力してください。
+
+ルートオブジェクト:
+{
+  "formatVersion": 2,
+  "courseName": ${JSON.stringify(state.courseName)},
+  "playDate": ${JSON.stringify(state.playDate)},
+  "frontCourseName": ${JSON.stringify(state.frontCourseName)},
+  "backCourseName": ${JSON.stringify(state.backCourseName)},
+  "players": ${state.players},
+  "playerNames": ${JSON.stringify(state.playerNames)},
+  "data": [18ホール分],
+  "currentHole": 現在表示すべきホールの0始まりインデックス,
+  "scoreMode": "diff"
+}
+
+各 data 要素:
+{
+  "par": そのホールのPar,
+  "players": [
+    {
+      "score": Scoreの絶対打数,
+      "putt": Putts,
+      "olympic": Olympic
+    }
+  ]
+}
+
+重要:
+- dataは必ず18要素。
+- players配列は毎ホール必ず${state.players}人分、playerNamesと同じ順序。
+- Parは上記【ホールPar】をそのまま使用。
+- 未入力値は -1 とする。
+- Scoreは絶対打数であり、Parとの差に変換しない。
+- PuttsとOlympicも未入力は -1。
+- currentHole は0始まり（1番ホール=0、2番ホール=1、…、18番ホール=17）。
+- ラウンド途中では、Score・Putts・Olympicのいずれかが未入力（-1）のプレイヤーが残っている最初のホールを currentHole にする。
+- 例: 1〜6番が全プレイヤー・全項目入力済みで7番が未入力なら currentHole は 6。7番を入力途中であっても currentHole は 6。
+- 18番まで全プレイヤー・全項目入力済みなら currentHole は 17。
+- 数値はJSON numberとして出力する。
+- GolfScoreProがそのまま読み込める有効なJSONにする。
+
+それでは待機状態で開始し、「スコア開始」と言うまで記録を始めないでください。`;
+}
+
+async function generateVoiceRecordPromptAndCopy(){
+  const state = currentStateObject();
+  const errors = [];
+  if(!state.courseName) errors.push("ゴルフ場名が未設定です");
+  if(!state.playDate) errors.push("日付が未設定です");
+  if(!state.frontCourseName) errors.push("前半コース名が未設定です");
+  if(!state.backCourseName) errors.push("後半コース名が未設定です");
+  if(!Number.isInteger(state.players) || state.players < 1 || state.playerNames.length !== state.players){
+    errors.push("プレイヤー情報が不正です");
+  }
+  const invalidPar = state.data.findIndex(hole => !isValidPar(hole?.par));
+  if(invalidPar >= 0) errors.push(`${invalidPar+1}番ホールのParが未設定です`);
+
+  if(errors.length){
+    alert("音声記録プロンプトを生成できません。\n" + errors.join("\n"));
+    return;
+  }
+
+  const prompt = buildVoiceRecordPrompt(state);
+  const ok = await copyText(prompt);
+  if(ok){
+    updateStatus("音声記録プロンプトをコピーしました");
+    closeAiPanel();
+    showToast("音声記録プロンプトをコピーしました");
+  }else{
+    alert("プロンプトのコピーに失敗しました");
   }
 }
 
@@ -4306,8 +4875,6 @@ window.addEventListener("load", () => {
   }
   updateScoreModeToggle();
   renderTimingSettingsPanel();
-  installGlobalLockGuards();
-  updateGlobalLockVisual();
   updateStatus("新規ラウンド、保存ファイルから新規ラウンド、ファイル読み込み、履歴再開のいずれかを選んでください");
 });
 </script>
@@ -4317,7 +4884,7 @@ window.addEventListener("load", () => {
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function(){
-    navigator.serviceWorker.register("./service-worker-v13.js").catch(function(err){
+    navigator.serviceWorker.register("./service-worker-v14.js").catch(function(err){
       console.warn("Service worker registration failed:", err);
     });
   });
