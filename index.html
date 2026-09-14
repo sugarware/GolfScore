@@ -663,13 +663,12 @@ td,th{
 }
 
 .screenTopBar{
-  position:fixed;
-  right:calc(16px + env(safe-area-inset-right, 0px));
-  bottom:calc(16px + env(safe-area-inset-bottom, 0px));
-  z-index:950;
+  position:static;
   display:flex;
   justify-content:flex-end;
+  flex-wrap:wrap;
   gap:8px;
+  margin:0 0 10px;
 }
 
 .screenTopBar button{
@@ -1201,7 +1200,7 @@ td,th{
     <input type="file" id="templateFileLoader" accept=".json,application/json" class="hidden" onchange="loadTemplateFromFile(event)">
 
     <h4>Par設定</h4>
-    <div class="note">ChatGPTでParを調べる場合は、画面右下の「AI連携」からPar取得プロンプトをコピーできます。現地でスコアカードを見ながら直接入力しても構いません。</div>
+    <div class="note">ChatGPTでParを調べる場合は、「AI連携」からPar取得プロンプトをコピーできます。現地でスコアカードを見ながら直接入力しても構いません。</div>
     <div class="note">例: 4,4,3,5,4,4,5,3,4 4,5,4,3,4,4,3,5,4<br>前半と後半は空白または改行で区切れます。18個まとめて入力しても使えます。</div>
     <textarea id="parCsvInput" class="parPrepBox" placeholder="例: 4,4,3,5,4,4,5,3,4 4,5,4,3,4,4,3,5,4"></textarea>
     <div id="parPrepStatus" class="parPrepStatus"></div>
